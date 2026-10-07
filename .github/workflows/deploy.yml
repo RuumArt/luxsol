@@ -1,0 +1,86 @@
+name: Deploy luxsol.sk
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'www/**'
+      - 'scripts/**'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Check transfer and server preflight without changing production files'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: luxsol-production
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      matrix:
+        php: ['8.3', '8.4']
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@b604ade2a87db23f8871b7182e69ec5e75effb45 # v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: dom, mbstring, openssl
+          ini-values: short_open_tag=On
+          coverage: none
+          tools: composer
+      - name: Validate PHP and payment callbacks
+        run: bash scripts/ci/validate.sh
+
+  deploy:
+    needs: validate
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment:
+      name: production
+      url: https://luxsol.sk
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@b604ade2a87db23f8871b7182e69ec5e75effb45 # v2
+        with:
+          php-version: '8.4'
+          extensions: dom, mbstring, openssl
+          coverage: none
+          tools: composer
+      - name: Install locked PHP dependencies
+        run: composer install --working-dir=www/local --no-dev --prefer-dist --no-interaction --no-progress --no-scripts --no-plugins
+      - name: Configure pinned SSH identity
+        env:
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          test -n "$SSH_KEY" && test -n "$KNOWN_HOSTS"
+          mkdir -p "$RUNNER_TEMP/luxsol-ssh"
+          umask 077
+          printf '%s\n' "$SSH_KEY" > "$RUNNER_TEMP/luxsol-ssh/key"
+          printf '%s\n' "$KNOWN_HOSTS" > "$RUNNER_TEMP/luxsol-ssh/known_hosts"
+      - name: Back up, deploy, clear cache and check site
+        env:
+          DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+          DEPLOY_USER: luxsol-deploy
+          DEPLOY_SSH_KEY_FILE: ${{ runner.temp }}/luxsol-ssh/key
+          DEPLOY_KNOWN_HOSTS_FILE: ${{ runner.temp }}/luxsol-ssh/known_hosts
+          DEPLOY_DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || false }}
+        run: bash scripts/ci/deploy.sh
+      - name: Remove SSH files
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/luxsol-ssh"

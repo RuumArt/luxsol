@@ -54,3 +54,5 @@ Icon.
 *.pem
 .pull-backups/
 .leftovers/
+__pycache__/
+*.pyc
