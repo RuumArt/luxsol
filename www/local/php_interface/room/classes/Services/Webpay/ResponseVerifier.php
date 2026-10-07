@@ -54,12 +54,31 @@ class ResponseVerifier
         }
 
         $message = implode('|', $values);
-        foreach (['DIGEST' => $message, 'DIGEST1' => $message . '|' . $merchantNumber] as $field => $signedMessage) {
+        $signatures = [];
+        foreach (['DIGEST', 'DIGEST1'] as $field) {
             $signature = strlen($params[$field]) <= 2000 ? base64_decode($params[$field], true) : false;
-            if ($signature === false || $signature === '' ||
-                openssl_verify($signedMessage, $signature, $publicKey, OPENSSL_ALGO_SHA1) !== 1) {
+            if ($signature === false || $signature === '') {
                 throw new \RuntimeException('Invalid GP webpay signature: ' . $field);
             }
+            $signatures[$field] = $signature;
         }
+
+        // GP webpay answers requests signed with SHA3-512 using that algorithm.
+        // Keep SHA-1 for older payment attempts; both signatures must use the same algorithm.
+        $supportedHashes = array_map('strtolower', openssl_get_md_methods());
+        $digestMatched = false;
+        foreach (['sha3-512', 'sha1'] as $algorithm) {
+            if (!in_array($algorithm, $supportedHashes, true)) {
+                continue;
+            }
+            if (openssl_verify($message, $signatures['DIGEST'], $publicKey, $algorithm) !== 1) {
+                continue;
+            }
+            $digestMatched = true;
+            if (openssl_verify($message . '|' . $merchantNumber, $signatures['DIGEST1'], $publicKey, $algorithm) === 1) {
+                return;
+            }
+        }
+        throw new \RuntimeException('Invalid GP webpay signature: ' . ($digestMatched ? 'DIGEST1' : 'DIGEST'));
     }
 }

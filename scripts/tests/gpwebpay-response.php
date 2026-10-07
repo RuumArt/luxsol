@@ -107,10 +107,10 @@ namespace {
     ];
 
     // Fixtures are explicitly ordered per protocol, independent of the verifier's field list.
-    $sign = static function (array $fields, string $merchant = '123456789') use ($key): array {
+    $sign = static function (array $fields, string $merchant = '123456789', string $algorithm = 'sha1') use ($key): array {
         $message = implode('|', $fields);
-        openssl_sign($message, $digest, $key, OPENSSL_ALGO_SHA1);
-        openssl_sign($message . '|' . $merchant, $digest1, $key, OPENSSL_ALGO_SHA1);
+        openssl_sign($message, $digest, $key, $algorithm);
+        openssl_sign($message . '|' . $merchant, $digest1, $key, $algorithm);
         return $fields + ['DIGEST' => base64_encode($digest), 'DIGEST1' => base64_encode($digest1)];
     };
     $passed = 0;
@@ -131,6 +131,20 @@ namespace {
     try {
         $valid = $sign($base);
         $check('signed successful payment', $valid, true);
+        $sha3 = $sign($base, '123456789', 'sha3-512');
+        $check('SHA3-512 signed successful payment', $sha3, true);
+        $check('changed SHA3-512 response is rejected', array_replace($sha3, ['PRCODE' => '50']), false);
+        $check('mixed signature algorithms are rejected', array_replace($sha3, ['DIGEST1' => $valid['DIGEST1']]), false);
+        $check('SHA3-512 signature for another merchant is rejected', $sign($base, '987654321', 'sha3-512'), false);
+        $cancelled = $sign(array_replace($base, ['PRCODE' => '50', 'RESULTTEXT' => 'The cardholder canceled the payment']), '123456789', 'sha3-512');
+        $check('SHA3-512 cancelled payment is not marked paid', $cancelled, false);
+        $cancelResult = $handler->processRequest(new \Bitrix\Sale\Payment(), new \Bitrix\Main\Request($cancelled));
+        if (($cancelResult->getPsData()['PS_STATUS_CODE'] ?? null) !== 50 ||
+            ($cancelResult->getPsData()['PS_STATUS_DESCRIPTION'] ?? '') !== 'The cardholder canceled the payment') {
+            throw new \RuntimeException('FAIL: SHA3-512 cancellation signature is verified and its reason is preserved');
+        }
+        $passed++;
+        echo 'PASS: SHA3-512 cancellation signature is verified and its reason is preserved', PHP_EOL;
         $check('request parameter order does not affect signature', array_reverse($valid, true), true);
         $check('unsigned success is rejected', $base, false);
         foreach (['DIGEST', 'DIGEST1', 'PRCODE', 'SRCODE', 'OPERATION', 'ORDERNUMBER', 'MERORDERNUM'] as $field) {
