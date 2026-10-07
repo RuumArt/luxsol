@@ -242,6 +242,7 @@ class GpWebHandler extends PaySystem\ServiceHandler
                     $fields['PS_STATUS'] = 'Y';
                     $fields['PS_STATUS_DESCRIPTION'] = Loc::getMessage('SALE_HPS_GPWEB_PAYMENT_SUCCESS');
                     $result->setOperationType(PaySystem\ServiceResult::MONEY_COMING);
+                    \Room\Tools\Ecommerce::rememberPaymentReturn((int)$payment->getOrderId());
                     $data['CODE'] = 0;
                 } else {
                     $fields['PS_STATUS'] = 'N';

@@ -73,6 +73,13 @@ namespace Bitrix\Sale\PaySystem {
     class ErrorLog { public static function add($entry) {} }
 }
 
+namespace Room\Tools {
+    class Ecommerce {
+        public static array $paymentReturns = [];
+        public static function rememberPaymentReturn(int $orderId): void { self::$paymentReturns[] = $orderId; }
+    }
+}
+
 namespace {
     if (PHP_SAPI !== 'cli') {
         http_response_code(403);
@@ -117,11 +124,13 @@ namespace {
     $check = static function (string $name, array $params, bool $accepted, ?\Bitrix\Sale\Payment $payment = null) use ($handler, &$passed): void {
         $payment = $payment ?? new \Bitrix\Sale\Payment();
         $before = $payment->fields;
+        $beforeReturns = \Room\Tools\Ecommerce::$paymentReturns;
         $result = $handler->processRequest($payment, new \Bitrix\Main\Request($params));
         $moneyComing = $result->isSuccess() &&
             $result->getOperationType() === \Bitrix\Sale\PaySystem\ServiceResult::MONEY_COMING;
         if ($moneyComing !== $accepted || $payment->fields !== $before || $payment->saves !== 0 ||
-            (!$accepted && ($result->isSuccess() || ($result->getPsData()['PS_STATUS'] ?? '') === 'Y'))) {
+            (!$accepted && ($result->isSuccess() || ($result->getPsData()['PS_STATUS'] ?? '') === 'Y')) ||
+            \Room\Tools\Ecommerce::$paymentReturns !== ($accepted ? array_merge($beforeReturns, [7]) : $beforeReturns)) {
             throw new \RuntimeException('FAIL: ' . $name);
         }
         $passed++;

@@ -67,8 +67,7 @@ $getPreviewPictureId = static function ($productId) {
 	
 	$isPaid = $order->isPaid(); 
 
-	// Страница оплаты картой. Переходим на неё только после того, как покупка
-	// ушла в аналитику (см. конец шаблона), иначе она теряется
+	// Неоплаченная карта не создаёт purchase. Переход на оплату остаётся немедленным.
 	$roomPaymentUrl = '';
 ?>
 
@@ -349,38 +348,11 @@ $getPreviewPictureId = static function ($productId) {
 	<?=Loc::getMessage('ROOM_ORDER_TOTAL')?>: <span><?=Format::price($arResult['ORDER']['PRICE'])?></span>
 </div>
 <?
-// Покупка для аналитики. Контейнер GTM ждёт событие с именем purchase
-// и сам передаёт данные в Google Analytics. Повторную отправку
-// при перезагрузке страницы отсекает Ecommerce::purchasePayload
+// Перевод и оплата при получении учитываются при оформлении.
+// Для GP WebPay purchasePayload вернёт null, пока заказ не оплачен.
 $roomPurchase = !empty($order) ? \Room\Tools\Ecommerce::purchasePayload($order) : null;
-
-if ($roomPurchase !== null || !empty($roomPaymentUrl)):
+require $_SERVER['DOCUMENT_ROOT'] . '/local/templates/luxol/include/purchase.php';
 ?>
-<script>
-	// Отправка и переход на оплату - build/js/ecommerce.js: сначала покупка
-	// уходит в GTM, потом открывается оплата. Скрипт подключён в футере,
-	// поэтому ждём готовности страницы
-	$(function () {
-		var purchase = <?=$roomPurchase !== null ? \Bitrix\Main\Web\Json::encode($roomPurchase) : 'null'?>;
-		var paymentUrl = <?=\Bitrix\Main\Web\Json::encode((string)($roomPaymentUrl ?? ''))?>;
-
-		if (purchase && typeof window.roomSendPurchase === 'function') {
-			window.roomSendPurchase(purchase, paymentUrl);
-			return;
-		}
-
-		// Скрипт аналитики не загрузился - оплата важнее покупки в отчёте
-		if (purchase) {
-			window.dataLayer = window.dataLayer || [];
-			window.dataLayer.push({ecommerce: null});
-			window.dataLayer.push(purchase);
-		}
-		if (paymentUrl) {
-			window.location.href = paymentUrl;
-		}
-	});
-</script>
-<? endif; ?>
 </div>
 
 <div class="back-main">

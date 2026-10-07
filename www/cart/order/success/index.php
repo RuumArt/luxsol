@@ -1,6 +1,9 @@
 <?
 require($_SERVER["DOCUMENT_ROOT"]."/bitrix/header.php");
 $APPLICATION->SetTitle("Success pay");
+$roomPurchase = \Room\Tools\Ecommerce::paymentReturnPayload();
+$roomPaymentUrl = '';
+require $_SERVER['DOCUMENT_ROOT'] . '/local/templates/luxol/include/purchase.php';
 ?>
 
 <main class="content return">

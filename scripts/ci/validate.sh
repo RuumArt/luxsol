@@ -10,6 +10,9 @@ while IFS= read -r -d '' file; do
 done < <(git ls-files -z -- '*.php')
 echo "PHP syntax checked: $count files"
 php -d short_open_tag=1 -d display_errors=0 scripts/tests/gpwebpay-response.php
+php -d short_open_tag=1 -d display_errors=0 scripts/tests/ecommerce.php
+node --check www/local/templates/luxol/components/bitrix/sale.order.ajax/order/order_ajax.js
+node scripts/tests/ecommerce-client.cjs
 python3 -m py_compile scripts/ci/server-release.py scripts/ci/ssh-entrypoint.py
 python3 scripts/tests/test_ci_release.py
 bash -n scripts/deploy.sh scripts/ci/deploy.sh scripts/ci/validate.sh

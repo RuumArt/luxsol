@@ -145,9 +145,12 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 			this.orderBlockNode.removeAttribute('style');
 			this.basketBlockScrollCheck();
 
-			if (this.params.USE_ENHANCED_ECOMMERCE === 'Y')
+			if (parameters.checkoutAnalytics && !this.checkoutAnalyticsSent)
 			{
-				this.setAnalyticsDataLayer('checkout');
+				this.checkoutAnalyticsSent = true;
+				window.dataLayer = window.dataLayer || [];
+				window.dataLayer.push({ecommerce: null});
+				window.dataLayer.push(parameters.checkoutAnalytics);
 			}
 
 			if (this.params.USER_CONSENT === 'Y')
@@ -341,11 +344,6 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 
 				if (result.REDIRECT_URL)
 				{
-					if (this.params.USE_ENHANCED_ECOMMERCE === 'Y')
-					{
-						this.setAnalyticsDataLayer('purchase', result.ID);
-					}
-
 					redirected = true;
 					location.href = result.REDIRECT_URL;
 				}

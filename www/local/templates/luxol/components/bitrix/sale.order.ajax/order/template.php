@@ -563,6 +563,10 @@ else
 		BX.message(<?=CUtil::PhpToJSObject($messages)?>);
 		BX.Sale.OrderAjaxComponent.init({
 			result: <?=CUtil::PhpToJSObject($arResult['JS_DATA'])?>,
+			checkoutAnalytics: <?=json_encode(\Room\Tools\Ecommerce::checkoutPayload(
+				$arResult['JS_DATA']['GRID']['ROWS'] ?? [],
+				(string)($arResult['CURRENCY'] ?? \Bitrix\Currency\CurrencyManager::getBaseCurrency())
+			), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR)?>,
 			locations: <?=CUtil::PhpToJSObject($arResult['LOCATIONS'])?>,
 			params: <?=CUtil::PhpToJSObject($arParams)?>,
 			signedParamsString: '<?=CUtil::JSEscape($signedParams)?>',

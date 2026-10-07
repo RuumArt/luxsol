@@ -4,6 +4,7 @@ namespace Room\Tools;
 
 use Bitrix\Main\Application;
 use Bitrix\Sale\Order;
+use Bitrix\Sale\PaySystem\Manager;
 
 /**
  * Данные о покупке для аналитики
@@ -22,18 +23,88 @@ class Ecommerce
      * Ключ в сессии со списком заказов, о которых уже сообщили
      */
     const SESSION_KEY = 'ROOM_GA_PURCHASE_SENT';
+    const PAYMENT_RETURN_KEY = 'ROOM_GA_PAYMENT_RETURN';
+
+    /** The callback may nominate an order; only a saved paid order can be sent. */
+    public static function rememberPaymentReturn(int $orderId): void
+    {
+        if ($orderId > 0) {
+            try {
+                self::setSessionValue(self::PAYMENT_RETURN_KEY, $orderId);
+            } catch (\Throwable $e) {
+                // Analytics storage must not turn a verified payment into an error.
+            }
+        }
+    }
+
+    public static function paymentReturnPayload(): ?array
+    {
+        $orderId = (int)self::sessionValue(self::PAYMENT_RETURN_KEY);
+        if ($orderId <= 0) {
+            return null;
+        }
+        self::setSessionValue(self::PAYMENT_RETURN_KEY, null);
+        $order = Order::load($orderId);
+        return $order && $order->isPaid() ? self::purchasePayload($order) : null;
+    }
+
+    public static function requiresConfirmedPayment(Order $order): bool
+    {
+        foreach ($order->getPaymentCollection() as $payment) {
+            if ((float)$payment->getSum() <= 0) {
+                continue;
+            }
+            $paySystem = Manager::getById($payment->getPaymentSystemId());
+            if (strtolower(basename(rtrim((string)($paySystem['ACTION_FILE'] ?? ''), '/'))) === 'gpweb') {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** GA4 data, with the checkout event name understood by the published GTM. */
+    public static function checkoutPayload(array $rows, string $currency): ?array
+    {
+        $items = [];
+        $value = 0;
+        foreach ($rows as $row) {
+            $data = $row['data'] ?? [];
+            $quantity = (float)($data['QUANTITY'] ?? 0);
+            if ($quantity <= 0 || empty($data['PRODUCT_ID'])) {
+                continue;
+            }
+            $article = '';
+            foreach (($data['PROPS'] ?? []) as $property) {
+                if (($property['CODE'] ?? '') === 'ARTICUL') {
+                    $article = trim((string)($property['VALUE'] ?? ''));
+                }
+            }
+            $price = round((float)($data['PRICE'] ?? 0), 2);
+            $items[] = [
+                'item_id' => $article !== '' ? $article : (string)$data['PRODUCT_ID'],
+                'item_name' => html_entity_decode((string)($data['NAME'] ?? ''), ENT_QUOTES, 'UTF-8'),
+                'price' => $price,
+                'quantity' => $quantity,
+            ];
+            $value += $price * $quantity;
+        }
+        return $items ? ['event' => 'checkout', 'ecommerce' => [
+            'currency' => $currency, 'value' => round($value, 2), 'items' => $items,
+        ]] : null;
+    }
 
     /**
      * Данные покупки для dataLayer
      *
      * @param Order $order
-     * @return array|null null - об этом заказе уже сообщали
+     * @return array|null null - заказ ещё не подходит для учёта или уже отправлен
      */
     public static function purchasePayload(Order $order): ?array
     {
         $orderId = (int)$order->getId();
 
-        if ($orderId <= 0 || self::alreadySent($orderId)) {
+        if ($orderId <= 0 || $order->isCanceled() ||
+            (self::requiresConfirmedPayment($order) && !$order->isPaid()) || self::alreadySent($orderId)) {
             return null;
         }
 
@@ -81,6 +152,22 @@ class Ecommerce
     private static function alreadySent(int $orderId): bool
     {
         return in_array($orderId, self::sentOrders(), true);
+    }
+
+    private static function sessionValue(string $key)
+    {
+        $session = self::session();
+        return $session !== null ? $session->get($key) : ($_SESSION[$key] ?? null);
+    }
+
+    private static function setSessionValue(string $key, $value): void
+    {
+        $session = self::session();
+        if ($session !== null) {
+            $session->set($key, $value);
+        } else {
+            $_SESSION[$key] = $value;
+        }
     }
 
     /**
