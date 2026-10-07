@@ -1,0 +1,89 @@
+version: "3.9"
+
+services:
+  nginx:
+    image: ${NGINX_IMAGE}
+    container_name: ${COMPOSE_PROJECT_NAME}-nginx
+    restart: ${COMPOSE_RESTART_POLICY}
+    links:
+      - php-fpm:php
+    depends_on:
+      - php-fpm
+    labels:
+      - "traefik.enable=true"
+
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}-ssl.rule=Host(`${PROJECT_HOST}`) || Host(`www.${PROJECT_HOST}`)"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}-ssl.entrypoints=https"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}-ssl.tls=true"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}-ssl.tls.certresolver=${PROJECT_CERT_RESOLVER}"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}-ssl.middlewares=${PROJECT_SSL_MIDDLEWARES}"
+
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}.rule=Host(`${PROJECT_HOST}`) || Host(`www.${PROJECT_HOST}`)"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}.entrypoints=http"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}.middlewares=${PROJECT_MIDDLEWARES}"
+
+      - "traefik.http.services.${COMPOSE_PROJECT_NAME}.loadbalancer.server.port=80"
+    volumes:
+      - ./config/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - &www-volume ./:/var/www:cached
+    networks:
+      - ${COMPOSE_NETWORK_NAME}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  php-fpm: &fpm-container
+    image: registry.gitlab.com/bitrix-docker/images/php-fpm-${PHP_VERSION}:latest
+#    build:
+#      context: ../../images/php-fpm-${PHP_VERSION}/
+#      dockerfile: Dockerfile
+    container_name: ${COMPOSE_PROJECT_NAME}-php-fpm
+    restart: ${COMPOSE_RESTART_POLICY}
+    environment:
+      PHP_IDE_CONFIG: "serverName=Docker"
+      XDEBUG_SESSION: "docker-server"
+      # to skip bitrix server test
+      BITRIX_VA_VER: 9.0.0
+      TZ: "${SERVER_TIMEZONE}"
+      PHP_INI_SCAN_DIR: /usr/local/etc/php/conf.d/common/:/usr/local/etc/php/conf.d/:/usr/local/etc/php/conf.d/site/
+    env_file:
+      - .env
+    volumes:
+      - ./../../config/php-fpm/:/usr/local/etc/php/conf.d/common/:ro
+      - ./../../config/cron/cron_events.php:/var/www/www/bitrix/php_interface/cron_events.php:ro
+      - ./config/php-fpm/${PHP_ENV}/:/usr/local/etc/php/conf.d/site/:ro
+      - *www-volume
+      - &msmtp-volume ./../../config/msmtp/msmtprc:/etc/msmtprc:ro
+      - ./docker-entrypoint.sh:/docker-entrypoint.sh:ro
+    external_links:
+      - ${COMPOSE_PROJECT_NAME}-nginx:${PROJECT_HOST}
+    # Локальная копия не должна дёргать боевые сервисы: в коде лежат рабочие
+    # ключи, и тестовый заказ мог бы создать настоящую посылку, SMS или лид.
+    # Адреса уводим в никуда - код при этом просто получает ошибку соединения
+    extra_hosts:
+      - "api.dpd.sk:127.0.0.1"
+      - "capi.dpd.sk:127.0.0.1"
+      - "www.zasilkovna.cz:127.0.0.1"
+      - "api.smstools.sk:127.0.0.1"
+      - "api-tls12.smstools.sk:127.0.0.1"
+      - "www.smstools.sk:127.0.0.1"
+      - "dev.crm.tuliponero.com:127.0.0.1"
+      - "api.telegram.org:127.0.0.1"
+      - "eshops.inteo.sk:127.0.0.1"
+#      - "${PROJECT_HOST}:127.0.0.1" # вместо 127.0.0.1 укажите внешний IP-адрес вашего сервера для прохождения тестов с сокетами Битрикс
+#      - "host.docker.internal:host-gateway" # для включения XDebug в линукс-подобных системах (в MacOS и Windows host.docker.internal итак работает)
+    networks:
+      - ${COMPOSE_NETWORK_NAME}
+    user: "${UID}:${GID}"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  bitrix:
+    external: true
+    name: ${COMPOSE_COMMON_PROJECT_NAME}_${COMPOSE_NETWORK_NAME}

@@ -1,0 +1,24 @@
+.build:js-module:
+  variables:
+#    JS_MODULE_DIR: Корневая директория js-модуля относительно DOCUMENT_ROOT без слэша (/) в начале и конце. Например: local/js/myModule.
+#    JS_MODULE_BUILD_DIR: Путь к директории со сборкой модуля модуля относительно DOCUMENT_ROOT без слэша (/) в начале и конце. Например: local/js/myModule/build.
+    GIT_STRATEGY: clone
+  image: node:latest
+  rules:
+    - if: $CI_COMMIT_BRANCH == "dev" || $CI_COMMIT_BRANCH == "master"
+      changes:
+        - ${JS_MODULE_DIR}/**/*
+  stage: build
+  cache:
+    key: "$CI_BUILD_REF_NAME"
+  before_script:
+    - cd ${JS_MODULE_DIR}
+    - npm install -g @bitrix/cli
+  script:
+    - npm ci
+    - bitrix build
+  artifacts:
+    name: "$CI_BUILD_NAME/$CI_BUILD_REF_NAME"
+    paths:
+      - ${JS_MODULE_BUILD_DIR}
+    expire_in: 1 day

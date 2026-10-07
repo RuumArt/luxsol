@@ -1,0 +1,20 @@
+.build:composer-install:
+  variables:
+#    COMPOSER_DIR: Папка с файлом composer.json, относительно корня проекта без слэша (/) в начале и конце, например: local/modules/myModule.
+    GIT_STRATEGY: clone
+  image: registry.gitlab.com/bitrix-docker/images/php-fpm-${PHP_VERSION}:latest
+  rules:
+    - if: $CI_COMMIT_BRANCH == "dev" || $CI_COMMIT_BRANCH == "master"
+      changes:
+        - ${COMPOSER_DIR}/composer.json
+        - ${COMPOSER_DIR}/composer.lock
+  stage: build
+  cache:
+    key: "$CI_BUILD_REF_NAME"
+  script:
+    - cd ${CI_PROJECT_DIR}/${COMPOSER_DIR} && composer install
+  artifacts:
+    name: "$CI_BUILD_NAME/$CI_BUILD_REF_NAME"
+    paths:
+      - ${COMPOSER_DIR}/vendor
+    expire_in: 1 day

@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  cron:
+    extends:
+      file: docker-compose.yml
+      service: php-fpm
+    container_name: ${COMPOSE_PROJECT_NAME}-cron
+    restart: ${COMPOSE_RESTART_POLICY}
+    command:
+      - /bin/sh
+      - -c
+      - "while [ : ]; do php -f /var/www/www/bitrix/php_interface/cron_events.php& (sleep 60); done"
+    depends_on:
+      - php-fpm

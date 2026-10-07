@@ -1,0 +1,30 @@
+.deploy:git-commit-pull-push:
+  variables:
+#    GITLAB_RUNNER_TAG: Тег, заданный для gitlab-раннера для конкретного хоста, где будет происходить деплой.
+#    ENVIRONMENT_NAME: Название окружения. Рекомендуется использовать имя домена сервера. Например test.example.com.
+#    ENVIRONMENT_URL: Ссылка на проект с указанием протокола (и при необходимости порта). Например: https://example.com, http//:test.example.com:8080.
+#    DOCUMENT_ROOT_DIR: Путь к директории DOCUMENT_ROOT проекта на хосте (относительно корня сервера).
+#    GIT_USER_EMAIL: Произвольный email автора для работы с командами git, такими как commit.
+#    GIT_USER_NAME: Произвольное имя автора для работы с командами git, такими как commit.
+    GIT_STRATEGY: clone
+  rules:
+    - if: $CI_COMMIT_BRANCH == "dev"
+  tags:
+    - ${GITLAB_RUNNER_TAG}
+  stage: deploy
+  environment:
+    name: ${ENVIRONMENT_NAME}
+    url: ${ENVIRONMENT_URL}
+  before_script:
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+  script:
+    - cd ${DOCUMENT_ROOT_DIR} && git config push.default simple && git fetch --all && git checkout ${CI_COMMIT_REF_NAME} && git config user.email \"${GIT_USER_EMAIL}\" && git config user.name \"${GIT_USER_NAME}\"
+    - cd ${DOCUMENT_ROOT_DIR} && git add . && git commit -am 'changes from server' || true
+    - cd ${DOCUMENT_ROOT_DIR} && git pull
+    - cd ${DOCUMENT_ROOT_DIR} && git submodule update --init && git submodule sync --recursive
+    - cd ${DOCUMENT_ROOT_DIR} && git pull --recurse-submodules
+    - cd ${DOCUMENT_ROOT_DIR} && git push --set-upstream origin ${CI_COMMIT_BRANCH}
+    - cd ${DOCUMENT_ROOT_DIR} && git status

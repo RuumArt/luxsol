@@ -1,0 +1,24 @@
+.deploy:js-module:
+  variables:
+#    GITLAB_RUNNER_TAG: Тег, заданный для gitlab-раннера для конкретного хоста, где будет происходить деплой.
+#    ENVIRONMENT_NAME: Название окружения. Рекомендуется использовать имя домена сервера. Например test.example.com.
+#    ENVIRONMENT_URL: Ссылка на проект с указанием протокола (и при необходимости порта). Например: https://example.com, http//:test.example.com:8080.
+#    JS_MODULE_DIR: Корневая директория js-модуля относительно DOCUMENT_ROOT без слэша (/) в начале и конце. Например: local/js/myModule.
+#    JS_MODULE_BUILD_DIR: Путь к директории со сборкой модуля относительно DOCUMENT_ROOT без слэша (/) в начале и конце. Например: local/js/myModule/build.
+#    DOCUMENT_ROOT_DIR: Путь к директории DOCUMENT_ROOT проекта на хосте.
+    GIT_STRATEGY: none # не требуется получать файлы из гита, в этом job только копирование из артефактов.
+  rules:
+    - if: $CI_COMMIT_BRANCH == "dev"
+      changes:
+        - ${JS_MODULE_DIR}/**/*
+  tags:
+    - ${GITLAB_RUNNER_TAG}
+  stage: deploy
+  dependencies: [.build:js-module]
+  environment:
+    name: ${ENVIRONMENT_NAME}
+    url: ${ENVIRONMENT_URL}
+  script:
+    - DESTINATION_DIR=${DOCUMENT_ROOT_DIR}/${JS_MODULE_BUILD_DIR}
+    - rm -rf ${DESTINATION_DIR}
+    - cp -rf ${CI_PROJECT_DIR}/${JS_MODULE_BUILD_DIR} ${DESTINATION_DIR}

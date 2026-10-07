@@ -1,0 +1,67 @@
+<?
+$aMenuLinks = Array(
+	Array(
+		"O nás", 
+		"/o-nas/", 
+		Array(), 
+		Array(), 
+		"" 
+	),
+	Array(
+		"Novinky", 
+		"/catalog/novinky/", 
+		Array(), 
+		Array(), 
+		"" 
+	),
+	Array(
+		"Akcie a zľavy", 
+		"/akciova-zlavy/", 
+		Array(), 
+		Array(), 
+		"" 
+	),
+	Array(
+		"Doprava a platba", 
+		"/doprava-a-platba/", 
+		Array(), 
+		Array(), 
+		"" 
+	),
+	Array(
+		"Montáž", 
+		"/montazh/", 
+		Array(), 
+		Array(), 
+		"" 
+	),
+	Array(
+		"Projekty", 
+		"/projects/", 
+		Array(), 
+		Array(), 
+		"" 
+	),
+	Array(
+		"Blog", 
+		"/blog/", 
+		Array(), 
+		Array(), 
+		"" 
+	),
+	Array(
+		"Otázky", 
+		"/faq/", 
+		Array(), 
+		Array(), 
+		"" 
+	),
+	Array(
+		"Kontakt", 
+		"/kontakt/", 
+		Array(), 
+		Array(), 
+		"" 
+	)
+);
+?>

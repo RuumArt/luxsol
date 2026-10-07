@@ -1,0 +1,122 @@
+image: alpine:latest
+
+variables:
+  PHP_VERSION: "8.1"
+
+stages:
+  - build
+  - deploy
+
+include:
+#  - local: 'ci/job-templates/build-bitrix-js-module.yml'
+#  - local: 'ci/job-templates/build-composer-install.yml'
+#  - local: 'ci/job-templates/deploy-bitrix-js-module.yml'
+#  - local: 'ci/job-templates/deploy-composer-install.yml'
+#  - local: 'ci/job-templates/deploy-git-reset-pull.yml'
+#  - local: 'ci/job-templates/deploy-git-commit-pull-push.yml'
+#  - local: 'ci/job-templates/deploy-migrations.yml'
+#  - local: 'ci/job-templates/deploy-docker-compose-up.yml'
+
+### Пример сборки js-модуля Битрикс
+#build:frontend:
+#  extends: .build:js-module
+#  variables:
+#    JS_MODULE_DIR: local/js/myModule
+#    JS_MODULE_BUILD_DIR: local/js/myModule/build
+#  rules:
+#    - if: $CI_COMMIT_BRANCH == "dev" || $CI_COMMIT_BRANCH == "master"
+#      changes:
+#        - ${JS_MODULE_DIR}/**/*
+
+### Пример выполнения composer install для проекта в целом или для отдельного модуля Битрикс
+#build:composer-install:
+#  extends: .build:composer-install
+#  variables:
+#    COMPOSER_DIR: local/modules/myModule
+#  rules:
+#    - if: $CI_COMMIT_BRANCH == "dev" || $CI_COMMIT_BRANCH == "master"
+#      changes:
+#        - ${COMPOSER_DIR}/composer.json
+#        - ${COMPOSER_DIR}/composer.lock
+
+### Пример выполнения git pull на сервере с предварительным commit и push изменений
+#deploy:dev:git-commit-pull-push:
+#  extends: .deploy:git-commit-pull-push
+#  variables:
+#    GITLAB_RUNNER_TAG: test-example-ru
+#    ENVIRONMENT_NAME: test.example.ru
+#    ENVIRONMENT_URL: https://test.example.ru
+#    DOCUMENT_ROOT_DIR: /srv/bitrix-server/sites/example.ru
+#    GIT_USER_EMAIL: Произвольный email автора для работы с командами git, такими как commit.
+#    GIT_USER_NAME: Произвольное имя автора для работы с командами git, такими как commit.
+#  rules:
+#    - if: $CI_COMMIT_BRANCH == "dev"
+
+### Пример выполнения git pull на сервере с предварительной очисткой изменений с сервера
+### !!! Осторожно, можно потерять изменения
+#deploy:dev:git-reset-pull:
+#  extends: .deploy:git-reset-pull
+#  variables:
+#    GITLAB_RUNNER_TAG: test-example-ru
+#    ENVIRONMENT_NAME: test.example.ru
+#    ENVIRONMENT_URL: https://test.example.ru
+#    DOCUMENT_ROOT_DIR: /srv/bitrix-server/sites/example.ru
+#    GIT_USER_EMAIL: Произвольный email автора для работы с командами git, такими как commit.
+#    GIT_USER_NAME: Произвольное имя автора для работы с командами git, такими как commit.
+#  rules:
+#    - if: $CI_COMMIT_BRANCH == "dev"
+
+### Пример деплоя js-модуля Битрикс
+#deploy:dev:frontend:
+#  extends: .deploy:js-module
+#  dependencies: [build:frontend]
+#  variables:
+#    GITLAB_RUNNER_TAG: test-example-ru
+#    ENVIRONMENT_NAME: test.example.ru
+#    ENVIRONMENT_URL: https://test.example.ru
+#    DOCUMENT_ROOT_DIR: /srv/bitrix-server/sites/example.ru
+#  rules:
+#    - if: $CI_COMMIT_BRANCH == "dev"
+#      changes:
+#        - ${JS_MODULE_DIR}/**/*
+
+### Пример деплоя папки vendor (результат composer install)
+#deploy:dev:composer-install:
+#  extends: .deploy:composer-install
+#  dependencies: [build:composer-install]
+#  variables:
+#    GITLAB_RUNNER_TAG: test-example-ru
+#    ENVIRONMENT_NAME: test.example.ru
+#    ENVIRONMENT_URL: https://test.example.ru
+#    DOCUMENT_ROOT_DIR: /srv/bitrix-server/sites/example.ru
+#    COMPOSER_DIR: local/modules/myModule
+#  rules:
+#    - if: $CI_COMMIT_BRANCH == "dev"
+#      changes:
+#        - ${COMPOSER_DIR}/composer.json
+#        - ${COMPOSER_DIR}/composer.lock
+
+### Пример запуска миграций
+### Основано на модуле https://marketplace.1c-bitrix.ru/solutions/sprint.migration/
+#deploy:dev:migrations:
+#  extends: .deploy:migrations
+#  dependencies: [deploy:dev:composer-install]
+#  variables:
+#    GITLAB_RUNNER_TAG: test-example-ru
+#    ENVIRONMENT_NAME: test.example.ru
+#    ENVIRONMENT_URL: https://test.example.ru
+#    DOCUMENT_ROOT_DIR: /srv/bitrix-server/sites/example.ru
+#  rules:
+#    - if: $CI_COMMIT_BRANCH == "dev"
+
+### Пример запуска контейнеров (docker compose up -d)
+#deploy:dev:docker-compose-up:
+#  extends: .deploy:docker-compose-up
+#  dependencies: [deploy:dev:git-commit-pull-push]
+#  variables:
+#    GITLAB_RUNNER_TAG: test-example-ru
+#    ENVIRONMENT_NAME: test.example.ru
+#    ENVIRONMENT_URL: https://test.example.ru
+#    DOCUMENT_ROOT_DIR: /srv/bitrix-server/sites/example.ru
+#  rules:
+#    - if: $CI_COMMIT_BRANCH == "dev"

@@ -1,0 +1,5 @@
+{
+    "require": {
+        "adamstipak/webpay-php": "dev-master"
+    }
+}

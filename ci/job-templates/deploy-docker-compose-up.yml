@@ -1,0 +1,17 @@
+.deploy:docker-compose-up:
+  variables:
+#    GITLAB_RUNNER_TAG: Тег, заданный для gitlab-раннера для конкретного хоста, где будет происходить деплой.
+#    ENVIRONMENT_NAME: Название окружения. Рекомендуется использовать имя домена сервера. Например test.example.com.
+#    ENVIRONMENT_URL: Ссылка на проект с указанием протокола (и при необходимости порта). Например: https://example.com, http//:test.example.com:8080.
+#    DOCUMENT_ROOT_DIR: Путь к директории DOCUMENT_ROOT проекта на хосте (относительно корня сервера).
+    GIT_STRATEGY: none # тут код из гита не нужен
+  rules:
+    - if: $CI_COMMIT_BRANCH == "dev"
+  tags:
+    - ${GITLAB_RUNNER_TAG}
+  stage: deploy
+  environment:
+    name: ${ENVIRONMENT_NAME}
+    url: ${ENVIRONMENT_URL}
+  script:
+    - cd ${DOCUMENT_ROOT_DIR} && docker compose up -d

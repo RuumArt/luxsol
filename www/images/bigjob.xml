@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SHOP>
+ 
+ <SHOPITEM>
+    <ITEM_ID> 500080 </ITEM_ID>
+    <PRODUCTNAME>Hádzanárske siete</PRODUCTNAME>
+    <PRODUCT>Záclonka do hádzanárskej Bránky 3x2 m </PRODUCT>
+    <DESCRIPTION>Záclonka do hádzanárskej bránky 3x2 m OKO 10, Hrúbka 2,2 mm</DESCRIPTION>
+    <URL>https://luxsol.sk/catalog/sportove-siete/hadzanarske-siete/zaclonka-do-hadzanarskej-branky-3x2-m-oko-10-hrubka-2-mm/</URL>
+    <IMGURL>https://luxsol.sk/upload/iblock/8d6/hadzanara.jpg</IMGURL>
+     <PRICE_VAT>10</PRICE_VAT>
+   
+    <MANUFACTURER>Luxsol</MANUFACTURER>
+    <CATEGORYTEXT>Šport > Loptové športy > Hádzaná > Hádzanárske siete
+</CATEGORYTEXT>
+    <PARAM>
+      <PARAM_NAME>Farba</PARAM_NAME>
+      <VAL> biela </VAL>
+    </PARAM>
+    <DELIVERY_DATE>2</DELIVERY_DATE>
+    <DELIVERY>
+      <DELIVERY_ID>DPD</DELIVERY_ID>
+      <DELIVERY_PRICE>6</DELIVERY_PRICE>
+      <DELIVERY_PRICE_COD>6</DELIVERY_PRICE_COD>
+     
+    </DELIVERY>
+    
+  </SHOPITEM>
+
+  <SHOPITEM>
+    <ITEM_ID> 502010 </ITEM_ID>
+    <PRODUCTNAME>Hádzanárska sieť </PRODUCTNAME>
+    <PRODUCT>Záclonka do hádzanárskej Bránky 3x2 m </PRODUCT>
+    <DESCRIPTION>Záclonka do hádzanárskej bránky 3x2 m, OKO 10 Cm, Hrúbka 3 mm</DESCRIPTION>
+    <URL>https://luxsol.sk/catalog/sportove-siete/hadzanarske-siete/zaclonka-do-hadzanarskej-branky-3x2-m-oko-10-cm-hrubka-3-mm/</URL>
+    <IMGURL>https://luxsol.sk/upload/iblock/8d6/hadzanara.jpg</IMGURL>
+     <PRICE_VAT>12,5</PRICE_VAT>
+   
+    <MANUFACTURER>Luxsol</MANUFACTURER>
+    <CATEGORYTEXT>Šport > Loptové športy > Hádzaná > Hádzanárske siete
+</CATEGORYTEXT>
+    <PARAM>
+      <PARAM_NAME>Farba</PARAM_NAME>
+      <VAL> biela </VAL>
+    </PARAM>
+    <DELIVERY_DATE>2</DELIVERY_DATE>
+    <DELIVERY>
+      <DELIVERY_ID>DPD</DELIVERY_ID>
+      <DELIVERY_PRICE>6</DELIVERY_PRICE>
+      <DELIVERY_PRICE_COD>6</DELIVERY_PRICE_COD>
+     
+    </DELIVERY>
+    
+  </SHOPITEM>
+
+ <SHOPITEM>
+    <ITEM_ID> 504011 </ITEM_ID>
+    <PRODUCTNAME>Hádzanárske siete</PRODUCTNAME>
+    <PRODUCT>Hádzanárska sieť bezuzlová Luxol  3x2x1x1 m</PRODUCT>
+    <DESCRIPTION>Hádzanárska sieť bezuzlová 2 mm/10 cm ROZMERY: 3Х2Х1Х1 m</DESCRIPTION>
+    <URL>https://luxsol.sk/catalog/sportove-siete/hadzanarske-siete/hadzanarska-siet-bezuzlova-2-mm-10-cm-rozmery-3-2-1-1-m/</URL>
+    <IMGURL>https://luxsol.sk/upload/iblock/490/Hadzanarska_siet_sk.jpg</IMGURL>
+     <PRICE_VAT>21</PRICE_VAT>
+   
+    <MANUFACTURER>Luxsol</MANUFACTURER>
+    <CATEGORYTEXT>Šport|Loptové športy|Hádzaná|Hádzanárske siete
+</CATEGORYTEXT>
+    <PARAM>
+      <PARAM_NAME>Farba</PARAM_NAME>
+      <VAL> biela </VAL>
+    </PARAM>
+    <DELIVERY_DATE>2</DELIVERY_DATE>
+    <DELIVERY>
+      <DELIVERY_ID>DPD</DELIVERY_ID>
+      <DELIVERY_PRICE>6</DELIVERY_PRICE>
+      <DELIVERY_PRICE_COD>6</DELIVERY_PRICE_COD>
+     
+    </DELIVERY>
+    
+  </SHOPITEM>
+
+ <SHOPITEM>
+    <ITEM_ID> 506013 </ITEM_ID>
+    <PRODUCTNAME>Hádzanárska sieť</PRODUCTNAME>
+    <PRODUCT>Hádzanárska sieť bezuzlová Luxsol 3x2x1x1 m</PRODUCT>
+    <DESCRIPTION>Hádzanárska sieť bezuzlová, Oko 10 cm, Hrúbka 2.5 mm Materiál: polyamid (nylon) 
+Rozmery: 3,00х2,00х1,00х1,00 m, Nosnosť: 98kgs 
+Siete na hádzanárske bránky z polyamidu slúžia na vonkajšie použitie a väčšie záťaže.</DESCRIPTION>
+    <URL>https://luxsol.sk/catalog/sportove-siete/hadzanarske-siete/hadzanarska-siet-bezuzlova-2-5-mm-10-cm-rozmery-3-2-1-1-m/</URL>
+    <IMGURL>https://luxsol.sk/upload/iblock/829/Hadzanarska_siet.jpg</IMGURL>
+     <PRICE_VAT>30</PRICE_VAT>
+  
+    <MANUFACTURER>Luxsol</MANUFACTURER>
+    <CATEGORYTEXT>Šport > Loptové športy > Hádzaná > Hádzanárske siete
+</CATEGORYTEXT>
+    <PARAM>
+      <PARAM_NAME>Farba</PARAM_NAME>
+      <VAL> biela </VAL>
+    </PARAM>
+    <DELIVERY_DATE>2</DELIVERY_DATE>
+    <DELIVERY>
+      <DELIVERY_ID>DPD</DELIVERY_ID>
+      <DELIVERY_PRICE>6</DELIVERY_PRICE>
+      <DELIVERY_PRICE_COD>6</DELIVERY_PRICE_COD>
+     
+    </DELIVERY>
+    
+  </SHOPITEM>
+
+
+ <SHOPITEM>
+    <ITEM_ID> 508012 </ITEM_ID>
+    <PRODUCTNAME>Hádzanárske siete</PRODUCTNAME>
+    <PRODUCT>Hádzanárske siete Luxol 3x2x1x1 m</PRODUCT>
+    <DESCRIPTION>Hádzanárska sieť bezuzlová 3 mm/10 cm ROZMERY: 3x2x1x1 m, Materiál: UV stabilizovaný polypropylén </DESCRIPTION>
+    <URL>https://luxsol.sk/catalog/sportove-siete/hadzanarske-siete/hadzanarska-siet-bezuzlova-2-5mm-10-cm-rozmery-3-2-1-1-m/</URL>
+    <IMGURL>https://luxsol.sk/upload/iblock/829/Hadzanarska_siet.jpg</IMGURL>
+     <PRICE_VAT>27</PRICE_VAT>
+
+    <MANUFACTURER>Luxsol</MANUFACTURER>
+    <CATEGORYTEXT>Šport > Loptové športy > Hádzaná > Hádzanárske siete</CATEGORYTEXT>
+    <PARAM>
+      <PARAM_NAME>Farba</PARAM_NAME>
+      <VAL> biela </VAL>
+    </PARAM>
+    <DELIVERY_DATE>2</DELIVERY_DATE>
+    <DELIVERY>
+      <DELIVERY_ID>DPD</DELIVERY_ID>
+      <DELIVERY_PRICE>6</DELIVERY_PRICE>
+      <DELIVERY_PRICE_COD>6</DELIVERY_PRICE_COD>
+     
+    </DELIVERY>
+    
+  </SHOPITEM>
+
+<SHOPITEM>
+    <ITEM_ID> 470010 </ITEM_ID>
+    <PRODUCTNAME>Volejbalová sieť </PRODUCTNAME>
+    <PRODUCT>Volejbalová sieť Luxsol  1x9.5 m</PRODUCT>
+    <DESCRIPTION>Volejbalová sieť bezuzlová, Oko 10 cm, 
+    Materiál 2 mm polypropylén bezuzlový 
+    Farba: biela
+    Rozmery 1x9.5m  </DESCRIPTION>
+    <URL>https://luxsol.sk/catalog/sportove-siete/volejbalove-siete/volejbalova-siet-bezuzlova-2-mm-100mm1x9-5-m/</URL>
+    <IMGURL>https://luxsol.sk/upload/iblock/f9d/Volejbalove_siete_3.jpg</IMGURL>
+     <PRICE_VAT>12</PRICE_VAT>
+  
+   <MANUFACTURER>Luxsol</MANUFACTURER>
+    <CATEGORYTEXT>Šport | Loptové športy | Volejbal | Volejbalové siete
+</CATEGORYTEXT>
+    <PARAM>
+      <PARAM_NAME>Farba</PARAM_NAME>
+      <VAL> biela </VAL>
+    </PARAM>
+    <DELIVERY_DATE>2</DELIVERY_DATE>
+    <DELIVERY>
+      <DELIVERY_ID>DPD</DELIVERY_ID>
+      <DELIVERY_PRICE>6</DELIVERY_PRICE>
+      <DELIVERY_PRICE_COD>6</DELIVERY_PRICE_COD>
+     
+    </DELIVERY>
+    
+  </SHOPITEM>
+
+<SHOPITEM>
+    <ITEM_ID> 472011 </ITEM_ID>
+    <PRODUCTNAME>Volejbalová sieť</PRODUCTNAME>
+    <PRODUCT>Volejbalová sieť  1x9.5 m</PRODUCT>
+    <DESCRIPTION>Volejbalová sieť bezuzlová, Oko 10 cm, Materiál 2 mm polypropylén bezuzlový 
+Farba: biela
+Rozmery 1x9.5m  </DESCRIPTION>
+    <URL>https://luxsol.sk/catalog/sportove-siete/volejbalove-siete/volejbalova-siet-bezuzlova-2-mm-100mm1x9-5-m-393/</URL>
+    <IMGURL>https://luxsol.sk/upload/iblock/44a/Volejbalove_siete_5.jpg</IMGURL>
+     <PRICE_VAT>14.4</PRICE_VAT>
+  
+   <MANUFACTURER>Luxsol</MANUFACTURER>
+    <CATEGORYTEXT>Šport | Loptové športy | Volejbal | Volejbalové siete
+</CATEGORYTEXT>
+    <PARAM>
+      <PARAM_NAME>Farba</PARAM_NAME>
+      <VAL> biela </VAL>
+    </PARAM>
+    <DELIVERY_DATE>2</DELIVERY_DATE>
+    <DELIVERY>
+      <DELIVERY_ID>DPD</DELIVERY_ID>
+      <DELIVERY_PRICE>6</DELIVERY_PRICE>
+      <DELIVERY_PRICE_COD>6</DELIVERY_PRICE_COD>
+     
+    </DELIVERY>
+    
+  </SHOPITEM>
+
+<SHOPITEM>
+    <ITEM_ID>478015</ITEM_ID>
+    <PRODUCTNAME>Volejbalová sieť</PRODUCTNAME>
+    <PRODUCT>Volejbalová sieť  1x9.5 m</PRODUCT>
+    <DESCRIPTION>Volejbalová sieť bezuzlová 
+Oko 10 cm 
+Materiál 2,5 mm polypropylén 
+Rozmery 1x9.5 m 
+Farba: biela/zelena/čierna 
+Obšita šnurou zo 4 stran, vrch lemuje stuha 5 cm  </DESCRIPTION>
+    <URL>https://luxsol.sk/catalog/sportove-siete/volejbalove-siete/volejbalova-siet-bezuzlova-2-5-mm-10-cm-1x9-5-m/</URL>
+    <IMGURL>https://luxsol.sk/upload/iblock/c12/Volejbalove_siete_11.jpg</IMGURL>
+     <PRICE_VAT>20.4</PRICE_VAT>
+  
+   <MANUFACTURER>Luxsol</MANUFACTURER>
+    <CATEGORYTEXT>Šport | Loptové športy | Volejbal | Volejbalové siete
+</CATEGORYTEXT>
+    <PARAM>
+      <PARAM_NAME>Farba</PARAM_NAME>
+      <VAL> biela </VAL>
+    </PARAM>
+    <DELIVERY_DATE>2</DELIVERY_DATE>
+    <DELIVERY>
+      <DELIVERY_ID>DPD</DELIVERY_ID>
+      <DELIVERY_PRICE>6</DELIVERY_PRICE>
+      <DELIVERY_PRICE_COD>6</DELIVERY_PRICE_COD>
+     
+    </DELIVERY>
+    
+  </SHOPITEM>
+
+
+<SHOPITEM>
+    <ITEM_ID>480016</ITEM_ID>
+    <PRODUCTNAME>Volejbalová sieť</PRODUCTNAME>
+    <PRODUCT>Volejbalová sieť Luxsol 1x9.5 m</PRODUCT>
+    <DESCRIPTION>Volejbalová sieť bezuzlová, Oko 10cm, Materiál 2,5 mm polypropylén 
+  Farba: biela 
+ Rozmery 1x9.5m 
+ Olemovaná po stranách páskou 2,5 cm, vrch lemuje stuha 5 cm
+  </DESCRIPTION>
+    <URL>https://luxsol.sk/catalog/sportove-siete/volejbalove-siete/volejbalova-siet-bezuzlova-2-5-mm-10-cm-1-9-5-m/</URL>
+    <IMGURL>https://luxsol.sk/upload/iblock/836/Volejbalove_siete_9.jpg</IMGURL>
+     <PRICE_VAT>24</PRICE_VAT>
+  
+   <MANUFACTURER>Luxsol</MANUFACTURER>
+    <CATEGORYTEXT>Šport | Loptové športy | Volejbal | Volejbalové siete
+</CATEGORYTEXT>
+    <PARAM>
+      <PARAM_NAME>Farba</PARAM_NAME>
+      <VAL> biela </VAL>
+    </PARAM>
+    <DELIVERY_DATE>2</DELIVERY_DATE>
+    <DELIVERY>
+      <DELIVERY_ID>DPD</DELIVERY_ID>
+      <DELIVERY_PRICE>6</DELIVERY_PRICE>
+      <DELIVERY_PRICE_COD>6</DELIVERY_PRICE_COD>
+     
+    </DELIVERY>
+    
+  </SHOPITEM>
+
+
+</SHOP>
