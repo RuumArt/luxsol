@@ -86,7 +86,7 @@ function ModifyOrderSaleMailsNew($orderID, &$eventName, &$arFields)
     $mesto = (string) getPropertyByCodeClear($propsCollection, 'Mesto');
     $psc = (string) getPropertyByCodeClear($propsCollection, 'PSС');
     $email = (string) getPropertyByCodeClear($propsCollection, 'EMAIL');
-    $phone = (string) getPropertyByCodeClear($propsCollection, 'PHONE');
+    $phone = Format::phone((string) getPropertyByCodeClear($propsCollection, 'PHONE'));
     $main_firma = (string) getPropertyByCodeClear($propsCollection, 'Firma');
     $main_ico = (string) getPropertyByCodeClear($propsCollection, 'IČO');
     $main_icdph = (string) getPropertyByCodeClear($propsCollection, 'IČ DPH');
@@ -98,7 +98,7 @@ function ModifyOrderSaleMailsNew($orderID, &$eventName, &$arFields)
     $adresa2 = (string) getPropertyByCodeClear($propsCollection, 'Adresa_2');
     $mesto2 = (string) getPropertyByCodeClear($propsCollection, 'Mesto_2');
     $psc2 = (string) getPropertyByCodeClear($propsCollection, 'PSС_2');
-    $phone2 = (string) getPropertyByCodeClear($propsCollection, 'PHONE_2');
+    $phone2 = Format::phone((string) getPropertyByCodeClear($propsCollection, 'PHONE_2'));
 
     $hasDeliveryAddress = !empty($fio2) || !empty($lname2) || !empty($adresa2) || !empty($mesto2) || !empty($psc2) || !empty($phone2);
 
@@ -125,15 +125,14 @@ function ModifyOrderSaleMailsNew($orderID, &$eventName, &$arFields)
         $zas_place = getPropertyByCode($propsCollection, 'zas_place')->getValue();
     }
 
-    // Адрес одной строкой (mesto, adresa, psc)
-    $addressLine = trim(implode(', ', array_filter([$mesto, $adresa, $psc])), " \t\n\r\0\x0B,");
-    $addressLine2 = trim(implode(', ', array_filter([$mesto2, $adresa2, $psc2])), " \t\n\r\0\x0B,");
+    $addressLine = Format::address($adresa, $psc, $mesto);
+    $addressLine2 = Format::address($adresa2, $psc2, $mesto2);
 
     $orderDate = $order->getDateInsert();
     if ($orderDate instanceof \Bitrix\Main\Type\DateTime) {
-        $orderDateFormatted = $orderDate->format('j. F Y, H:i');
+        $orderDateFormatted = $orderDate->format('d. m. Y, H:i');
     } else {
-        $orderDateFormatted = date('j. F Y, H:i', strtotime($orderDate));
+        $orderDateFormatted = date('d. m. Y, H:i', strtotime($orderDate));
     }
 
     $basketTotal = 0;
@@ -165,26 +164,24 @@ function ModifyOrderSaleMailsNew($orderID, &$eventName, &$arFields)
         }
 
         $extras = [];
-        if (!empty($props['SIZES_STR']['VALUE'])) {
-            $sizeLines = !empty($props['SIZES_STR']['VALUE'])
-                ? Format::sizeLines($props['SIZES_STR']['VALUE'])
-                : [];
-
-            $extras[] = 'Rozmery: </br>';
-
-            foreach ($sizeLines as $sizeLine):
-              $extras[] = $sizeLine;
-            endforeach;
+        $sizeLines = !empty($props['SIZES_STR']['VALUE'])
+            ? Format::sizeLines($props['SIZES_STR']['VALUE'])
+            : [];
+        if (!empty($sizeLines)) {
+            $extras[] = 'Rozmery:';
+            foreach ($sizeLines as $sizeLine) {
+                $extras[] = htmlspecialchars($sizeLine);
+            }
         }
         if (!empty($props['SQUARE']['VALUE'])) {
-            $extras[] = 'Plocha: ' . $props['SQUARE']['VALUE'] . ' m2';
+            $extras[] = 'Plocha: ' . htmlspecialchars(Format::number($props['SQUARE']['VALUE'])) . ' m²';
         }
         if (!empty($props['COLOR']['VALUE'])) {
-            $extras[] = 'Farba: ' . $props['COLOR']['VALUE'];
+            $extras[] = 'Farba: ' . htmlspecialchars($props['COLOR']['VALUE']);
         }
         $detailText = implode('<br>', $extras);
         if (!empty($props['SIZES_STR']['VALUE'])) {
-            $qtyText = '1 ks';
+            $qtyText = '';
             $linePrice = $basketItem->getPrice();
         } else {
             $symbol = isset($arMeasure[$basketItem->getProductId()]['MEASURE']['SYMBOL_RUS'])
@@ -192,6 +189,9 @@ function ModifyOrderSaleMailsNew($orderID, &$eventName, &$arFields)
                 : 'ks';
             $qtyText = $basketItem->getQuantity() . ' ' . $symbol;
             $linePrice = $basketItem->getQuantity() * $basketItem->getPrice();
+        }
+        if ($qtyText !== '') {
+            $detailText .= ($detailText !== '' ? '<br>' : '') . 'Množstvo: ' . htmlspecialchars($qtyText);
         }
         $basketTotal += $linePrice;
 
@@ -205,7 +205,7 @@ function ModifyOrderSaleMailsNew($orderID, &$eventName, &$arFields)
                                                 </td>
                                                 <td style="vertical-align: top;">
                                                     <p style="margin: 0 0 5px 0; color: #212529; font-size: 15px; font-weight: 500;">' . htmlspecialchars($name) . '</p>
-                                                    <p style="margin: 0; color: #6c757d; font-size: 13px;">' . ($detailText ? $detailText . '<br>' : '') . 'Množstvo: ' . htmlspecialchars($qtyText) . '</p>
+                                                    <p style="margin: 0; color: #6c757d; font-size: 13px;">' . $detailText . '</p>
                                                 </td>
                                             </tr>
                                         </table>

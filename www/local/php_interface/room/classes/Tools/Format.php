@@ -24,6 +24,37 @@ class Format
     // Максимум знаков после запятой в режиме автоопределения
     const AUTO_DECIMALS = 3;
 
+    /** Readable SK/CZ phone numbers without changing the stored contact value. */
+    public static function phone(string $phone): string
+    {
+        $clean = trim((string)preg_replace('/\s+/u', ' ', $phone));
+        $digits = (string)preg_replace('/\D/', '', $clean);
+        if (str_starts_with($digits, '00')) {
+            $digits = substr($digits, 2);
+        }
+        if (preg_match('/^(421|420)(\d{3})(\d{3})(\d{3})$/D', $digits, $parts)) {
+            return '+' . implode(' ', array_slice($parts, 1));
+        }
+
+        return $clean;
+    }
+
+    /** Street and number, postal code and city, with embedded newlines removed. */
+    public static function address(string $street, string $postalCode, string $city): string
+    {
+        $clean = static fn(string $value): string => trim((string)preg_replace('/\s+/u', ' ', $value), " ,");
+        $street = $clean($street);
+        $postalCode = $clean($postalCode);
+        $city = $clean($city);
+        $compactPostalCode = str_replace(' ', '', $postalCode);
+        if (preg_match('/^\d{5}$/D', $compactPostalCode)) {
+            $postalCode = substr($compactPostalCode, 0, 3) . ' ' . substr($compactPostalCode, 3);
+        }
+        $locality = implode(' ', array_filter([$postalCode, $city], static fn($part) => $part !== ''));
+
+        return implode(', ', array_filter([$street, $locality], static fn($part) => $part !== ''));
+    }
+
     /**
      * Число в локальном формате
      * Примеры: 2.5 -> "2,5", 2.00 -> "2", 21.6 -> "21,6", 1234.5 -> "1 234,5"

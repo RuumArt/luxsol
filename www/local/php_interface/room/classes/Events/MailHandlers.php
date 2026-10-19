@@ -14,6 +14,44 @@ Loader::includeModule('sale');
 
 class MailHandlers
 {
+    public static function prepareNewOrderNotification(&$fields, &$template, $context = null): void
+    {
+        if (($template['EVENT_NAME'] ?? '') !== 'SALE_NEW_ORDER'
+            || !str_contains((string)($template['EMAIL_TO'] ?? ''), '#EMAIL#')) {
+            return;
+        }
+
+        $fields['=X-Luxsol-Notification'] = 'new-order';
+    }
+
+    /** Prevent Bitrix from appending MID to the body, retaining it as an X-MID header. */
+    public static function prepareCustomerMail(\Bitrix\Main\Event $event): ?\Bitrix\Main\EventResult
+    {
+        $params = $event->getParameter(0);
+        if (($params['HEADER']['X-Luxsol-Notification'] ?? '') !== 'new-order') {
+            return null;
+        }
+
+        $headers = $params['HEADER'];
+        unset($headers['X-Luxsol-Notification']);
+        if (!empty($params['MESSAGE_ID'])) {
+            $headers['X-MID'] = $params['MESSAGE_ID'];
+        }
+
+        // The footer belongs to the Bitrix mail theme, added after template compilation.
+        $body = preg_replace(
+            '/(?:©|&copy;|&#169;)\s*(?:\d{4}|#CURRENT_YEAR#|#YEAR#)\s+(?:Názov obchodu|Luxsol s\.r\.o)\./u',
+            '© ' . date('Y') . ' Luxsol s.r.o.',
+            (string)($params['BODY'] ?? '')
+        );
+
+        return new \Bitrix\Main\EventResult(\Bitrix\Main\EventResult::SUCCESS, [
+            'MESSAGE_ID' => null,
+            'HEADER' => $headers,
+            'BODY' => $body,
+        ]);
+    }
+
     /** Use the same sender as the working new-order notification and Zoho transport. */
     public static function preparePaymentNotification(&$fields, &$template, $context = null): void
     {

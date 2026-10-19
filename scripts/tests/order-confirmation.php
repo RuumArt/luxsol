@@ -2,6 +2,15 @@
 /** CLI-only confirmation copy and notification preparation checks. No mail is sent. */
 namespace Bitrix\Main {
     class Loader { public static function includeModule($name) { return true; } }
+    class Event {
+        public function __construct(private array $params) {}
+        public function getParameter($key) { return $this->params[$key] ?? null; }
+    }
+    class EventResult {
+        public const SUCCESS = 1;
+        public function __construct(public $type, private array $params) {}
+        public function getParameters() { return $this->params; }
+    }
 }
 namespace Bitrix\Sale {
     class Order {
@@ -33,9 +42,11 @@ namespace {
     $root = dirname(__DIR__, 2);
     require $root . '/www/local/php_interface/room/classes/Tools/OrderConfirmation.php';
     require $root . '/www/local/php_interface/room/classes/Events/MailHandlers.php';
+    require $root . '/www/local/php_interface/room/classes/Tools/Format.php';
     use Bitrix\Main\Mail\Internal\EventTable;
     use Room\Tools\OrderConfirmation;
     use Room\Events\MailHandlers;
+    use Room\Tools\Format;
     $passed = 0;
     $check = static function ($name, $ok) use (&$passed) {
         if (!$ok) { throw new \RuntimeException('FAIL: ' . $name); }
@@ -72,5 +83,27 @@ namespace {
     $withdrawal = ['EVENT_NAME'=>'ODSTUPENIE_OD_ZMLUVY','MESSAGE'=>'Račianska 66, 831 02 Bratislava'];
     MailHandlers::preparePaymentNotification($fields, $withdrawal);
     $check('existing database withdrawal template receives full address', $withdrawal['MESSAGE']==='Račianska 1571/66, 831 02 Bratislava');
+    $check('phone gets international prefix and readable groups', Format::phone('421908201087') === '+421 908 201 087');
+    $check('already formatted phone remains stable', Format::phone('+421 908 201 087') === '+421 908 201 087');
+    $check('international 00 prefix is supported', Format::phone('00421908201087') === '+421 908 201 087');
+    $check('other country number is preserved', Format::phone('+49 30 123456') === '+49 30 123456');
+    $check('empty phone remains empty', Format::phone('') === '');
+    $check('address uses street, postcode and city without line breaks', Format::address("Trnavského\r\n 18", '84101', " Bratislava\n") === 'Trnavského 18, 841 01 Bratislava');
+    $check('missing postcode does not leave extra punctuation', Format::address('Trnavského 18', '', 'Bratislava') === 'Trnavského 18, Bratislava');
+    $newTemplate = ['EVENT_NAME'=>'SALE_NEW_ORDER','EMAIL_TO'=>'#EMAIL#','MESSAGE'=>'#EMAIL_PRODUCTS_TABLE#'];
+    $newFields = [];
+    MailHandlers::prepareNewOrderNotification($newFields, $newTemplate);
+    $check('customer template is marked without modifying compiled placeholders', ($newFields['=X-Luxsol-Notification'] ?? '') === 'new-order' && $newTemplate['MESSAGE'] === '#EMAIL_PRODUCTS_TABLE#');
+    $mailParams = ['MESSAGE_ID'=>'13909.30','HEADER'=>['From'=>'info@luxsol.sk','X-Luxsol-Notification'=>'new-order'], 'BODY'=>'<html><body><p>Products</p><p>© 2026 Názov obchodu. Všetky práva vyhradené.</p></body></html>'];
+    $prepared = MailHandlers::prepareCustomerMail(new \Bitrix\Main\Event([$mailParams]))->getParameters();
+    $check('compiled theme footer gets real merchant and current year', $prepared['BODY'] === '<html><body><p>Products</p><p>© '.date('Y').' Luxsol s.r.o. Všetky práva vyhradené.</p></body></html>');
+    $check('visible MID is disabled but retained in headers', $prepared['MESSAGE_ID'] === null && $prepared['HEADER']['X-MID'] === '13909.30');
+    $check('internal notification marker does not leave the site', !isset($prepared['HEADER']['X-Luxsol-Notification']));
+    $check('normal mail headers are preserved', $prepared['HEADER']['From'] === 'info@luxsol.sk');
+    $check('unrelated mail keeps its normal identifiers', MailHandlers::prepareCustomerMail(new \Bitrix\Main\Event([['MESSAGE_ID'=>'other','HEADER'=>[]]])) === null);
+    $adminTemplate = ['EVENT_NAME'=>'SALE_NEW_ORDER','EMAIL_TO'=>'admin@example.test','MESSAGE'=>'Admin'];
+    $adminFields = [];
+    MailHandlers::prepareNewOrderNotification($adminFields, $adminTemplate);
+    $check('admin-only notification is not marked as customer mail', empty($adminFields));
     echo $passed, " checks passed; no real email or database writes.\n";
 }
