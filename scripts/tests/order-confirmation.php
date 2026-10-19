@@ -43,6 +43,7 @@ namespace {
     require $root . '/www/local/php_interface/room/classes/Tools/OrderConfirmation.php';
     require $root . '/www/local/php_interface/room/classes/Events/MailHandlers.php';
     require $root . '/www/local/php_interface/room/classes/Tools/Format.php';
+    require $root . '/www/local/php_interface/room/classes/Tools/AdvanceInvoiceReminderTemplate.php';
     use Bitrix\Main\Mail\Internal\EventTable;
     use Room\Tools\OrderConfirmation;
     use Room\Events\MailHandlers;
@@ -105,5 +106,19 @@ namespace {
     $adminFields = [];
     MailHandlers::prepareNewOrderNotification($adminFields, $adminTemplate);
     $check('admin-only notification is not marked as customer mail', empty($adminFields));
+    $reminderTemplate = \Room\Tools\AdvanceInvoiceReminderTemplate::fields([
+        'SITE_TEMPLATE_ID'=>'MM', 'BODY_TYPE'=>'html', 'EMAIL_FROM'=>'info@luxsol.sk', 'LANGUAGE_ID'=>'ru',
+    ], 's1');
+    $check('reminder reuses existing customer theme, sender and site', $reminderTemplate['SITE_TEMPLATE_ID'] === 'MM' && $reminderTemplate['EMAIL_FROM'] === 'info@luxsol.sk' && $reminderTemplate['LID'] === ['s1']);
+    $check('reminder has an independent event and no blind copies', $reminderTemplate['EVENT_NAME'] === 'LUXSOL_ADVANCE_INVOICE_REMINDER' && $reminderTemplate['EMAIL_TO'] === '#EMAIL#' && $reminderTemplate['BCC'] === '' && $reminderTemplate['CC'] === '');
+    foreach (['INVOICE_NUMBER','ORDER_NUMBER','AMOUNT_WITH_CURRENCY','DUE_DATE','IBAN','VARIABLE_SYMBOL'] as $field) {
+        $check('reminder escapes HTML field '.$field, str_contains($reminderTemplate['MESSAGE'], '#HTML_'.$field.'#') && !str_contains($reminderTemplate['MESSAGE'], '#'.$field.'#'));
+    }
+    $reminderFields = [];
+    MailHandlers::prepareNewOrderNotification($reminderFields, $reminderTemplate);
+    $check('reminder receives customer mail preparation', ($reminderFields['=X-Luxsol-Notification'] ?? '') === 'advance-invoice-reminder');
+    $reminderParams = ['MESSAGE_ID'=>'test.31','HEADER'=>['X-Luxsol-Notification'=>'advance-invoice-reminder'], 'BODY'=>'<html><head><title>Nová objednávka</title></head><body>© 2026 Názov obchodu.</body></html>'];
+    $preparedReminder = MailHandlers::prepareCustomerMail(new \Bitrix\Main\Event([$reminderParams]))->getParameters();
+    $check('reminder has correct title and merchant without visible MID', $preparedReminder['MESSAGE_ID'] === null && str_contains($preparedReminder['BODY'], '<title>Pripomenutie platby</title>') && str_contains($preparedReminder['BODY'], 'Luxsol s.r.o.'));
     echo $passed, " checks passed; no real email or database writes.\n";
 }

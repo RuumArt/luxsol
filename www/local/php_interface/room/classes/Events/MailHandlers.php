@@ -7,6 +7,7 @@ use Bitrix\Sale\Order;
 use Bitrix\Catalog\ProductTable;
 use Room\Helpers\PropertyHelper;
 use Room\Tools\Format;
+use Room\Tools\AdvanceInvoiceReminderTemplate;
 
 use Room\Services\TelegramService;
 
@@ -16,19 +17,24 @@ class MailHandlers
 {
     public static function prepareNewOrderNotification(&$fields, &$template, $context = null): void
     {
-        if (($template['EVENT_NAME'] ?? '') !== 'SALE_NEW_ORDER'
-            || !str_contains((string)($template['EMAIL_TO'] ?? ''), '#EMAIL#')) {
+        $types = [
+            'SALE_NEW_ORDER' => 'new-order',
+            AdvanceInvoiceReminderTemplate::EVENT_NAME => 'advance-invoice-reminder',
+        ];
+        $type = $types[$template['EVENT_NAME'] ?? ''] ?? null;
+        if ($type === null || !str_contains((string)($template['EMAIL_TO'] ?? ''), '#EMAIL#')) {
             return;
         }
 
-        $fields['=X-Luxsol-Notification'] = 'new-order';
+        $fields['=X-Luxsol-Notification'] = $type;
     }
 
     /** Prevent Bitrix from appending MID to the body, retaining it as an X-MID header. */
     public static function prepareCustomerMail(\Bitrix\Main\Event $event): ?\Bitrix\Main\EventResult
     {
         $params = $event->getParameter(0);
-        if (($params['HEADER']['X-Luxsol-Notification'] ?? '') !== 'new-order') {
+        $notification = $params['HEADER']['X-Luxsol-Notification'] ?? '';
+        if (!in_array($notification, ['new-order', 'advance-invoice-reminder'], true)) {
             return null;
         }
 
@@ -44,6 +50,9 @@ class MailHandlers
             '© ' . date('Y') . ' Luxsol s.r.o.',
             (string)($params['BODY'] ?? '')
         );
+        if ($notification === 'advance-invoice-reminder') {
+            $body = preg_replace('~<title>.*?</title>~si', '<title>Pripomenutie platby</title>', $body, 1);
+        }
 
         return new \Bitrix\Main\EventResult(\Bitrix\Main\EventResult::SUCCESS, [
             'MESSAGE_ID' => null,
