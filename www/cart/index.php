@@ -37,7 +37,6 @@ Array()
 		"COLUMNS_LIST_MOBILE" => array(
 			0 => "PREVIEW_PICTURE",
 			1 => "DELETE",
-			2 => "SUM",
 		),
 		"COMPATIBLE_MODE" => "Y",
 		"CORRECT_RATIO" => "Y",
