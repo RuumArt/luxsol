@@ -386,6 +386,9 @@ class GpWebHandler extends PaySystem\ServiceHandler
             $addInfo, // ADDINFO - Additional info with cardholder data (PSD2 requirement)
             PaymentRequest::PAYMENT_CARD // PAYMETHOD - Default payment method
         );
+
+        // LANG controls the hosted payment page; receipt wording is managed by GP webpay.
+        $paymentRequest->setParam('LANG', 'sk');
         
         return $paymentRequest;
     }

@@ -60,7 +60,10 @@ namespace {
     $check('unpaid card order produces no purchase', Ecommerce::purchasePayload($card) === null);
     $check('unpaid card is not marked sent', empty($_SESSION[Ecommerce::SESSION_KEY]));
     $check('opening the success URL alone produces no purchase', Ecommerce::paymentReturnPayload() === null);
+    $_GET['ORDER_ID'] = 101;
+    $check('URL order ID cannot reveal confirmation details', Ecommerce::paymentReturnOrder() === null);
     Ecommerce::rememberPaymentReturn(101);
+    $check('failed save cannot show a successful confirmation', Ecommerce::paymentReturnOrder() === null);
     $check('callback followed by failed save produces no purchase', Ecommerce::paymentReturnPayload() === null);
     $card->paid = true;
     Ecommerce::rememberPaymentReturn(101);
@@ -69,11 +72,13 @@ namespace {
     $check('purchase contains actual order number and total', $payload['ecommerce']['transaction_id'] === 'ORDER-101' && $payload['ecommerce']['value'] === 43.90);
     $check('purchase contains currency, delivery and items', $payload['ecommerce']['currency'] === 'EUR' && $payload['ecommerce']['shipping'] === 7.0 && $payload['ecommerce']['items'][0]['quantity'] === 2.0 && $payload['ecommerce']['items'][0]['item_id'] === '470011');
     $check('success reload does not repeat purchase', Ecommerce::paymentReturnPayload() === null);
+    $check('confirmation remains available on reload after analytics consumption', Ecommerce::paymentReturnOrder() === $card);
     Ecommerce::rememberPaymentReturn(101);
     $check('repeated return does not repeat purchase', Ecommerce::paymentReturnPayload() === null);
     $check('confirmation reload does not repeat purchase', Ecommerce::purchasePayload($card) === null);
     $cancelled = new Order(102); $cancelled->paid = true; $cancelled->cancelled = true;
     Ecommerce::rememberPaymentReturn(102);
+    $check('cancelled order cannot show successful confirmation', Ecommerce::paymentReturnOrder() === null);
     $check('cancelled order produces no purchase', Ecommerce::paymentReturnPayload() === null);
     Ecommerce::rememberPaymentReturn(999);
     $check('missing order produces no purchase', Ecommerce::paymentReturnPayload() === null);

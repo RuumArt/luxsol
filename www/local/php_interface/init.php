@@ -843,7 +843,7 @@ function OnSaleStatusOrderChangeHandler($event)
         $is_valid_phone = checkPhoneNumber($phone);
 
         if ($is_valid_phone) {
-            send_sms_message($phone, 'Objednávka číslo '.$order_id.' je pripravená k odberu na adrese Bratislava, Račianska 66. Termín vyzdvihnutia prosím nahlásiť telefonicky alebo mailom. Ďakujem, Luxsol.sk');
+            send_sms_message($phone, 'Objednávka číslo '.$order_id.' je pripravená k odberu na adrese Račianska 1571/66, 831 02 Bratislava. Termín vyzdvihnutia prosím nahlásiť telefonicky alebo mailom. Ďakujem, Luxsol.sk');
         }
     }
 

@@ -127,7 +127,7 @@ Array()
 		"MESS_NEAREST_PICKUP_LIST" => "Najbližší bod:",
 		"MESS_SELECT_PICKUP" => "Vybrať",
 		"MESS_INNER_PS_BALANCE" => "Na vašom používateľskom účte:",
-		"MESS_ORDER_DESC" => "Pripomienky k objednávke:",
+		"MESS_ORDER_DESC" => "Poznámka k objednávke:",
 		"MESS_SUCCESS_PRELOAD_TEXT" => "Вы заказывали в нашем интернет-магазине, поэтому мы заполнили все данные автоматически.<br />Если все заполнено верно, нажмите кнопку \"#ORDER_BUTTON#\".",
 		"MESS_FAIL_PRELOAD_TEXT" => "Objednali ste si v našom internetovom obchode, takže sme vyplnili všetky dáta automaticky.< br />dávajte pozor na rozšírený blok s informáciami o objednávke. Tu môžete vykonať potrebné zmeny alebo nechať tak, ako je, a kliknite na tlačidlo \" # ORDER_BUTTON#\".",
 		"MESS_DELIVERY_CALC_ERROR_TITLE" => "Nepodarilo sa vypočítať náklady na dopravu.",

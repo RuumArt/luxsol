@@ -24,6 +24,7 @@ class Ecommerce
      */
     const SESSION_KEY = 'ROOM_GA_PURCHASE_SENT';
     const PAYMENT_RETURN_KEY = 'ROOM_GA_PAYMENT_RETURN';
+    const PAYMENT_CONFIRMATION_KEY = 'ROOM_PAYMENT_CONFIRMATION_ORDER';
 
     /** The callback may nominate an order; only a saved paid order can be sent. */
     public static function rememberPaymentReturn(int $orderId): void
@@ -31,6 +32,7 @@ class Ecommerce
         if ($orderId > 0) {
             try {
                 self::setSessionValue(self::PAYMENT_RETURN_KEY, $orderId);
+                self::setSessionValue(self::PAYMENT_CONFIRMATION_KEY, $orderId);
             } catch (\Throwable $e) {
                 // Analytics storage must not turn a verified payment into an error.
             }
@@ -46,6 +48,16 @@ class Ecommerce
         self::setSessionValue(self::PAYMENT_RETURN_KEY, null);
         $order = Order::load($orderId);
         return $order && $order->isPaid() ? self::purchasePayload($order) : null;
+    }
+
+    /** Confirmation access comes from the verified callback, never a URL order ID. */
+    public static function paymentReturnOrder(): ?Order
+    {
+        $orderId = (int)(self::sessionValue(self::PAYMENT_CONFIRMATION_KEY)
+            ?: self::sessionValue(self::PAYMENT_RETURN_KEY));
+        $order = $orderId > 0 ? Order::load($orderId) : null;
+
+        return $order && $order->isPaid() && !$order->isCanceled() ? $order : null;
     }
 
     public static function requiresConfirmedPayment(Order $order): bool

@@ -3267,7 +3267,7 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 						children: [
 							BX.create('DIV', {
 								props: {className: 'bx-soa-item-td-title'},
-								text: column.name
+								text: column.id === 'SUM' ? 'Cena položky s DPH' : column.name
 							})
 						]
 					})
@@ -3482,11 +3482,83 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 			});
 		},
 
+		// Format properties at render time: AJAX recalculations bypass result_modifier.php.
+		getBasketItemDisplayProps: function(data)
+		{
+			var props = data.PROPS || [], sizes = [], result = [], sizesAdded = false,
+				hiddenCodes = ['PRICE', 'PRICE_NOVAT', 'CUSTOM_PRICE_PROP', 'SIZES',
+					'CATALOG.XML_ID', 'PRODUCT.XML_ID', 'SUM_OF_CHARGE'],
+				hiddenNames = ['Ссылка', 'Цена', 'Рассчитанная цена', 'Dimenze', 'Цена без ндс'],
+				number = function(value) { return String(Number(String(value).replace(',', '.'))).replace('.', ','); },
+				pattern = /([\d.,]+)\s*(?:m\s*)?[xх×]\s*([\d.,]+)\s*m\s*(?:[xх×]|[—–-])\s*([\d.,]+)\s*ks\.?/gi,
+				i, prop, code, name, value, match;
+
+			for (i = 0; i < props.length; i++)
+			{
+				if (props[i].CODE === 'SIZES_STR')
+				{
+					while ((match = pattern.exec(String(props[i].VALUE || ''))) !== null)
+					{
+						sizes.push({length: number(match[1]), width: number(match[2]), count: number(match[3])});
+					}
+				}
+			}
+
+			for (i = 0; i < props.length; i++)
+			{
+				prop = props[i];
+				code = prop.CODE || '';
+				name = prop.NAME || '';
+				value = prop.VALUE == null ? '' : String(prop.VALUE);
+
+				if (hiddenCodes.indexOf(code) !== -1 || hiddenNames.indexOf(name) !== -1)
+					continue;
+				if (!value.trim().length)
+					continue;
+
+				// Stored HEIGHT/WIDTH are aggregates; derive dimensions from the actual cut.
+				if ((code === 'HEIGHT' || code === 'WIDTH') && sizes.length)
+					continue;
+
+				if (!sizesAdded && sizes.length === 1 && (code === 'SQUARE' || code === 'SIZES_STR'))
+				{
+					result.push({CODE: 'HEIGHT', NAME: 'Dĺžka', VALUE: sizes[0].length + ' m'});
+					result.push({CODE: 'WIDTH', NAME: 'Šírka', VALUE: sizes[0].width + ' m'});
+					sizesAdded = true;
+				}
+
+				if (code === 'HEIGHT' || code === 'WIDTH')
+				{
+					name = code === 'HEIGHT' ? 'Dĺžka' : 'Šírka';
+					value = value.replace(/\s*m\s*$/i, '').replace(/(\d)\.(\d)/g, '$1,$2') + ' m';
+				}
+				else if (code === 'SQUARE')
+				{
+					name = 'Plocha';
+					value = value.replace(/\s*m(?:2|²)\s*$/i, '').replace(/(\d)\.(\d)/g, '$1,$2') + ' m²';
+				}
+				else if (code === 'SIZES_STR')
+				{
+					name = 'Rozmery';
+					if (sizes.length)
+					{
+						value = sizes.map(function(size) {
+							return size.length + ' m × ' + size.width + ' m — ' + size.count + ' ks';
+						}).join('\n');
+					}
+				}
+
+				result.push({CODE: code, NAME: name, VALUE: value});
+			}
+
+			return result;
+		},
+
 		createBasketItemContent: function(data)
 		{
 			var itemName = data.NAME || '',
 				titleHtml = this.htmlspecialcharsEx(itemName),
-				props = data.PROPS || [],
+				props = this.getBasketItemDisplayProps(data),
 				propsNodes = [];
 
 			if (this.params.HIDE_DETAIL_PAGE_URL !== 'Y' && data.DETAIL_PAGE_URL && data.DETAIL_PAGE_URL.length)
@@ -3504,7 +3576,6 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 						var name = props[i].NAME || '',
 							value = props[i].VALUE || '';
 
-						if(name !== 'Ссылка' && name !== 'Цена' && name !== 'Рассчитанная цена' && name !== 'Dimenze' && name !== 'Ширина' && name !== 'Высота' && name !== 'Цена без ндс'){
 						propsNodes.push(
 							BX.create('DIV', {
 								props: {className: 'bx-soa-item-td-title'},
@@ -3515,11 +3586,10 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 						propsNodes.push(
 							BX.create('DIV', {
 								props: {className: 'bx-soa-item-td-text'},
-								style: {textAlign: 'left'},
+								style: {textAlign: 'left', whiteSpace: 'pre-line'},
 								text: value
 							})
 						);
-						}
 					}
 				}
 			}
@@ -3649,15 +3719,16 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 			if (column.id == 'QUANTITY'){
 				column.name = 'Množstvo';
 			} else if (column.id == 'SUM') {
-				column.name = 'Jednotková cena';
+				column.name = 'Cena položky s DPH';
 			}
 
-			// У товара с размерами количество не выводится (см. result_modifier.php).
-			// В таком случае прячем и подпись колонки - на мобильной вёрстке
-			// иначе остаётся "Množstvo" с пустым значением
+			// У размерного товара QUANTITY = 1 для всей позиции, реальные количества
+			// указаны по каждому куску. Прячем значение и подпись, в том числе после AJAX.
 			var columnValue = data[column.id],
 				isBlankColumn = column.id === 'QUANTITY'
-					&& (!columnValue || !String(columnValue).replace(/&nbsp;|\s/g, '').length),
+					&& ((allData.data.PROPS || []).some(function(prop) {
+						return prop.CODE === 'SIZES_STR' && String(prop.VALUE || '').trim().length;
+					}) || !columnValue || !String(columnValue).replace(/&nbsp;|\s/g, '').length),
 				children = [];
 
 			if (!isBlankColumn)
@@ -3666,9 +3737,8 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 					props: {className: 'bx-soa-item-td-title visible-xs visible-sm'},
 					text: column.name
 				}));
+				children.push(textNode);
 			}
-
-			children.push(textNode);
 
 			return BX.create('DIV', {
 				props: {className: 'bx-soa-item-td bx-soa-item-properties' + (toRight ? ' bx-text-right' : '')},
@@ -3687,7 +3757,7 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 
 			if (column.id === 'PROPS')
 			{
-				var propsNodes = [], props = allData.data.PROPS;
+				var propsNodes = [], props = this.getBasketItemDisplayProps(allData.data);
 				if (props && props.length)
 				{
 					for (i in props)
@@ -3705,7 +3775,7 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 									props: {className: 'bx-soa-info-line'},
 									children: [
 										BX.create('TD', {props: {className: 'bx-soa-info-title'}, text: name + ':'}),
-										BX.create('TD', {props: {className: 'bx-soa-info-text'}, html: BX.util.htmlspecialchars(value)})
+										BX.create('TD', {props: {className: 'bx-soa-info-text'}, style: {whiteSpace: 'pre-line'}, html: BX.util.htmlspecialchars(value)})
 									]
 								})
 							);
@@ -3810,7 +3880,7 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 				children: [
 					BX.create('TD', {
 						props: {className: 'bx-soa-info-title'},
-						text: column.name + ':'
+						text: (column.id === 'SUM' ? 'Cena položky s DPH' : column.name) + ':'
 					}),
 					textNode
 				]
@@ -6660,12 +6730,15 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 			var propsItemNode = BX.create('DIV'),
 				textHtml = '',
 				propertyType = property.getType() || '',
-				propertyDesc = property.getDescription() || '',
+				propertyCode = String(property.getSettings().CODE || '').toUpperCase().replace(/[СČ]/g, 'C'),
+				deliveryAddressNames = {ADRESA_2: 'Adresa', MESTO_2: 'Mesto', PSC_2: 'PSČ'},
+				propertyName = deliveryAddressNames[propertyCode] || property.getName(),
+				propertyDesc = deliveryAddressNames[propertyCode] ? '' : (property.getDescription() || ''),
 				label;
 
 			if (disabled)
 			{
-				propsItemNode.innerHTML = '<strong>' + BX.util.htmlspecialchars(property.getName()) + ':</strong> ';
+				propsItemNode.innerHTML = '<strong>' + BX.util.htmlspecialchars(propertyName) + ':</strong> ';
 			}
 			else
 			{
@@ -6674,7 +6747,7 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 				if (property.isRequired())
 					textHtml += '<span class="bx-authform-starrequired">*</span> ';
 
-				textHtml += BX.util.htmlspecialchars(property.getName());
+				textHtml += BX.util.htmlspecialchars(propertyName);
 				if (propertyDesc.length && propertyType != 'NUMBER' && propertyType != 'DATE')
 					textHtml += ' <small>(' + BX.util.htmlspecialchars(propertyDesc) + ')</small>';
 

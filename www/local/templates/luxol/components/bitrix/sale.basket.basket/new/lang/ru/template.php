@@ -20,6 +20,7 @@ $MESS["SBB_BASKET_ITEM_SIMILAR_P1"] = "Tento produkt";
 $MESS["SBB_BASKET_ITEM_SIMILAR_P2"] = "už je v košíku v množstve";
 $MESS["SBB_BASKET_ITEM_SIMILAR_P3"] = "Zlúčiť produkty do jednej položky s množstvom";
 $MESS["SBB_BASKET_ITEM_PRICE_FOR"] = "cena za";
+$MESS["SBB_BASKET_ITEM_SUM"] = "Cena za položku";
 $MESS["SBB_BASKET_ITEM_ECONOMY"] = "Úspora";
 $MESS["SBB_BASKET_ITEM_DELETED"] = "bol odstránený z košíka";
 $MESS["SBB_BASKET_ITEM_RESTORE"] = "Obnoviť";

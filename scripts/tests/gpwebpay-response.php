@@ -212,6 +212,7 @@ namespace {
         $result = $handler->initiatePay($payment);
         parse_str(parse_url($handler->extra['URL'] ?? '', PHP_URL_QUERY) ?? '', $outgoing);
         if (!$result->isSuccess() || ($outgoing['MERORDERNUM'] ?? '') !== '42' ||
+            ($outgoing['LANG'] ?? '') !== 'sk' || ($outgoing['DEPOSITFLAG'] ?? '') !== '1' ||
             ($outgoing['ORDERNUMBER'] ?? '') !== $payment->fields['PS_INVOICE_ID']) {
             throw new \RuntimeException('FAIL: outgoing payment ID and attempt persistence');
         }

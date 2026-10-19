@@ -507,8 +507,9 @@ if (!empty($arParams['LABEL_PROP_POSITION']))
 			if ($useSumColumn)
 			{
 				?>
-				<td class="basket-items-list-item-price<?=(!isset($mobileColumns['SUM']) ? ' hidden-xs' : '')?>">
+				<td class="basket-items-list-item-price basket-items-list-item-price-sum<?=(!isset($mobileColumns['SUM']) ? ' hidden-xs' : '')?>">
 					<div class="basket-item-block-price">
+						<div class="basket-item-sum-label visible-xs"><?=Loc::getMessage('SBB_BASKET_ITEM_SUM')?>:</div>
 						{{#SHOW_DISCOUNT_PRICE}}
 							<div class="basket-item-price-old">
 								<span class="basket-item-price-old-text" id="basket-item-sum-price-old-{{ID}}">

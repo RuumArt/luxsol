@@ -1,5 +1,5 @@
 <?
-$sSectionName = "Success pay";
+$sSectionName = "Potvrdenie objednávky";
 $arDirProperties = Array(
 
 );

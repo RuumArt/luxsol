@@ -21,6 +21,7 @@ $MESS["SBB_BASKET_ITEM_SIMILAR_P1"] = "You already have";
 $MESS["SBB_BASKET_ITEM_SIMILAR_P2"] = "this product in your cart. Quantity:";
 $MESS["SBB_BASKET_ITEM_SIMILAR_P3"] = "Merge products in one item, quantity:";
 $MESS["SBB_BASKET_ITEM_PRICE_FOR"] = "price for";
+$MESS["SBB_BASKET_ITEM_SUM"] = "Item total";
 $MESS["SBB_BASKET_ITEM_ECONOMY"] = "You save";
 $MESS["SBB_BASKET_ITEM_DELETED"] = "was deleted from the cart";
 $MESS["SBB_BASKET_ITEM_RESTORE"] = "Bring it back";

@@ -119,7 +119,7 @@ $MESS["PICKUP_LIST_DEFAULT"] = "Body vyzdvihnutia:";
 $MESS["NEAREST_PICKUP_LIST_DEFAULT"] = "Najbližší bod:";
 $MESS["SELECT_PICKUP_DEFAULT"] = "Vybrať";
 $MESS["INNER_PS_BALANCE_DEFAULT"] = "Na vašom používateľskom účte:";
-$MESS["ORDER_DESC_DEFAULT"] = "Pripomienky k objednávke:";
+$MESS["ORDER_DESC_DEFAULT"] = "Poznámka k objednávke:";
 $MESS["SELECT_FILE_DEFAULT"] = "Vybrať";
 $MESS["SUCCESS_PRELOAD_TEXT_DEFAULT"] = "Objednali ste si v našom internetovom obchode, takže sme vyplnili všetky dáta automaticky.<br />
 Ak je všetko vyplnené správne, kliknite na tlačidlo \"#ORDER_BUTTON#\".

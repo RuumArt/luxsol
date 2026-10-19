@@ -1,0 +1,38 @@
+Komu: gpwebpay@gpe.cz
+Predmet: Luxsol.sk — aktualizácia adresy obchodníka a slovenské potvrdenia platieb
+
+Dobrý deň,
+
+prosíme o aktualizáciu údajov obchodníka v platobnej bráne GP webpay pre e-shop https://luxsol.sk/.
+
+V potvrdeniach platieb sa zobrazuje stará adresa Líščie Nivy 23, 821 08 Bratislava. Aktuálna adresa je:
+Luxsol s.r.o.
+Račianska 1571/66
+831 02 Bratislava
+Slovenská republika
+
+Zároveň prosíme o preverenie jazyka a formulácie potvrdení zasielaných zákazníkom. Aktuálne zákazník dostáva anglické potvrdenie s predmetom „CONFIRMATION OF BLOCKING THE FUNDS OF THE CARDHOLDER“.
+
+Číslo e-shopu v portáli: 7322224782
+Poskytovateľ: Global Payments s.r.o. (SK), kód 0902
+
+Konkrétny príklad:
+Číslo platby GP webpay: 28271791534396
+Číslo objednávky e-shopu: 2827
+Terminál: 22262227
+Dátum a čas potvrdenia: 09.10.2026 10:26:57
+Suma: 23,80 EUR
+
+E-shop eviduje podpísanú úspešnú odpoveď s PRCODE=0 a výsledkom OK. Portál GP webpay taktiež zobrazuje stav Zaplatená, zaplatené 23,80 EUR a vrátené 0,00 EUR. V požiadavkách posielame DEPOSITFLAG=1; do integrácie zároveň dopĺňame LANG=sk.
+
+V portáli je stále uvedená stará adresa a predvolený jazyk English [en]. Tieto údaje sú v našom prístupe iba na čítanie. Prosíme o nastavenie predvoleného jazyka na slovenčinu [sk].
+
+Prosíme o potvrdenie:
+1. Prosíme o potvrdenie, že stav Zaplatená pri uvedenej operácii zodpovedá zachyteniu platby (capture) a pre terminál je aktívne automatické zúčtovanie.
+2. Je možné potvrdenia posielať v slovenčine? Riadi ich jazyk parameter LANG, jazyk zvolený na platobnej stránke, alebo samostatné nastavenie terminálu?
+3. Je možné predmet a text potvrdenia prispôsobiť skutočnému stavu platby tak, aby zákazníka nemiatla formulácia o blokovaní prostriedkov?
+4. Ak zmenu adresy musí vykonať zmluvná banka alebo obchodník v inom rozhraní, prosíme o presný postup a potrebné podklady.
+
+Ďakujeme za preverenie. Ak je na zmenu údajov potrebné potvrdenie zmluvného obchodníka, prosíme o zaslanie požadovaného postupu.
+
+Luxsol s.r.o.

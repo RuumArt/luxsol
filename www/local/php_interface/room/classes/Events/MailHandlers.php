@@ -14,6 +14,36 @@ Loader::includeModule('sale');
 
 class MailHandlers
 {
+    /** Use the same sender as the working new-order notification and Zoho transport. */
+    public static function preparePaymentNotification(&$fields, &$template, $context = null): void
+    {
+        if (($template['EVENT_NAME'] ?? '') === 'ODSTUPENIE_OD_ZMLUVY') {
+            $template['MESSAGE'] = str_replace(
+                'Račianska 66, 831 02 Bratislava',
+                'Račianska 1571/66, 831 02 Bratislava',
+                (string)($template['MESSAGE'] ?? '')
+            );
+        }
+
+        if (($template['EVENT_NAME'] ?? '') !== 'SALE_ORDER_PAID') {
+            return;
+        }
+
+        $template['EMAIL_FROM'] = 'info@luxsol.sk';
+        $template['REPLY_TO'] = 'office@luxsol.sk';
+
+        $address = 'Račianska 1571/66, 831 02 Bratislava';
+        if (mb_strpos((string)($template['MESSAGE'] ?? ''), $address) === false) {
+            $footer = ($template['BODY_TYPE'] ?? '') === 'html'
+                ? '<p>Luxsol s.r.o.<br>' . $address . '<br><a href="https://luxsol.sk/">luxsol.sk</a></p>'
+                : "\n\nLuxsol s.r.o.\n" . $address . "\nhttps://luxsol.sk/";
+            $body = (string)($template['MESSAGE'] ?? '');
+            $template['MESSAGE'] = stripos($body, '</body>') !== false
+                ? preg_replace('~</body>~i', $footer . '</body>', $body, 1)
+                : $body . $footer;
+        }
+    }
+
     /**
      * Обработчик события перед добавлением почтового события
      * 

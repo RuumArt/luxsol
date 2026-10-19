@@ -98,7 +98,7 @@ O ďalšom postupe Vás budeme informovať e-mailom. Ak máte otázky, odpovedzt
 
 S pozdravom
 Luxsol s.r.o.
-Račianska 66, 831 02 Bratislava
+Račianska 1571/66, 831 02 Bratislava
 https://luxsol.sk
 TXT,
 ];
