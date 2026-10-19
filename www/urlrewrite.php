@@ -1,5 +1,13 @@
 <?php
 $arUrlRewrite=array (
+  8 =>
+  array (
+    'CONDITION' => '#^/feeds/microsoft-merchant\\.xml(?:\\?.*)?$#',
+    'RULE' => '',
+    'ID' => NULL,
+    'PATH' => '/feeds/microsoft-merchant.php',
+    'SORT' => 10,
+  ),
   0 => 
   array (
     'CONDITION' => '#^\\/?\\/mobileapp/jn\\/(.*)\\/.*#',

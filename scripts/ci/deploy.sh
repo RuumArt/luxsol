@@ -31,7 +31,7 @@ fi
 
 remote release
 health_ok=true
-for path in / /catalog/ /kontakt/ /cart/ /cart/order/; do
+for path in / /catalog/ /kontakt/ /cart/ /cart/order/ /feeds/google-merchant.php /feeds/microsoft-merchant.xml; do
     if ! status=$(curl --silent --show-error --location --max-time 45 --retry 2 --retry-delay 3 --output /dev/null --write-out '%{http_code}' "https://luxsol.sk$path"); then
         health_ok=false
         break
