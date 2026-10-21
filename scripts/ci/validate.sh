@@ -13,6 +13,7 @@ php -d short_open_tag=1 -d display_errors=0 scripts/tests/gpwebpay-response.php
 php -d short_open_tag=1 -d display_errors=0 scripts/tests/ecommerce.php
 php -d short_open_tag=1 -d display_errors=0 scripts/tests/order-confirmation.php
 php -d short_open_tag=1 -d display_errors=0 scripts/tests/catalog-selection.php
+php -d short_open_tag=1 -d display_errors=0 scripts/tests/advance-invoice-reminders.php
 php -d short_open_tag=1 -d display_errors=0 scripts/tests/merchant-feeds.php
 node --check www/local/templates/luxol/components/bitrix/sale.order.ajax/order/order_ajax.js
 node scripts/tests/ecommerce-client.cjs
