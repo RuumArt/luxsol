@@ -3734,7 +3734,8 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 			if (!isBlankColumn)
 			{
 				children.push(BX.create('DIV', {
-					props: {className: 'bx-soa-item-td-title visible-xs visible-sm'},
+					props: {className: 'bx-soa-item-td-title'
+						+ (column.id === 'SUM' && this.params.SHOW_BASKET_HEADERS !== 'Y' ? '' : ' visible-xs visible-sm')},
 					text: column.name
 				}));
 				children.push(textNode);
