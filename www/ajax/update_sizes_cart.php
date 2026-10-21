@@ -3,6 +3,7 @@ require($_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/main/include/prolog_before.
 
 use Room\Services\CartService;
 use Room\Tools\PriceCalculator;
+use Room\Tools\CatalogSelection;
 
 CModule::IncludeModule('catalog');
 CModule::IncludeModule("sale");
@@ -51,10 +52,9 @@ try {
             throw new Exception('Товар не найден: ' . $productId);
         }
 
-        $articul = !empty($product['articul']) ? $product['articul'] : $productInfo['article'];
-        $color = (!empty($product['color']) && $product['color'] !== 'undefined')
-            ? $product['color']
-            : PriceCalculator::COLOR_WHITE_NAME;
+        $selection = CatalogSelection::get($productId, (string)($product['color'] ?? ''));
+        $articul = $selection['article'] !== '' ? $selection['article'] : $productInfo['article'];
+        $color = $selection['color'];
         $basePrice = isset($product['price']) ? (float)str_replace(",", ".", $product['price']) : 0;
 
         // Пересчет цены по новым размерам

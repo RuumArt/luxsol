@@ -126,7 +126,7 @@
   					});
 				},
               	onfailure: function() {
-            		console.log('update fail');
+					alert('Košík sa nepodarilo aktualizovať. Obnovte stránku a skontrolujte vybranú farbu.');
             	}
 			});
 

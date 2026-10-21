@@ -5,6 +5,7 @@ use Bitrix\Main\Application;
 use Bitrix\Main\Localization\Loc;
 use Room\Services\CartService;
 use Room\Tools\PriceCalculator;
+use Room\Tools\CatalogSelection;
 
 CModule::IncludeModule('catalog');
 CModule::IncludeModule("sale");
@@ -28,9 +29,6 @@ try {
         throw new Exception('Не указан ID товара');
     }
 
-    // Удаление товара из корзины, если он уже там есть (переключение)
-    CartService::removeFromBasketIfExists($productId);
-
     // Получение информации о товаре
     $baseProductId = CartService::getBaseProductId($productId);
     $productInfo = CartService::getProductInfo($baseProductId);
@@ -39,8 +37,9 @@ try {
         throw new Exception('Товар не найден');
     }
 
-    $articul = !empty($_POST['articul']) ? $_POST['articul'] : $productInfo['article'];
-    $color = (!empty($_POST['color']) && $_POST['color'] !== 'undefined') ? $_POST['color'] : PriceCalculator::COLOR_WHITE_NAME;
+    $selection = CatalogSelection::get($productId, (string)($_POST['color'] ?? ''));
+    $articul = $selection['article'] !== '' ? $selection['article'] : $productInfo['article'];
+    $color = $selection['color'];
 
     // Обработка товара с размерами
     if (!empty($_POST['sizes']) && is_array($_POST['sizes'])) {
@@ -73,6 +72,7 @@ try {
         ];
 
         // Добавление в корзину
+        CartService::removeFromBasketIfExists($productId);
         CartService::addProductWithSizes($productId, $priceData, $properties);
 
         $response['data'] = [
@@ -91,6 +91,7 @@ try {
             $properties[] = ["NAME" => "Farba", "VALUE" => $color, "CODE" => "COLOR"];
         }
 
+        CartService::removeFromBasketIfExists($productId);
         $priceData = CartService::addSimpleProduct($productId, $quantity, $properties);
 
         $response['data'] = [

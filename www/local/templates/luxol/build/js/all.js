@@ -18,6 +18,10 @@ function setBasketCountText(data) {
 	$('.headerbasket ._count').html(data);
 }
 
+function roomCartError(xhr) {
+	alert((xhr.responseJSON && xhr.responseJSON.error) || 'Tovar sa nepodarilo pridať do košíka. Skúste to znova.');
+}
+
 function add_cart_catalog(element){
 	var id = $(element).data('id');
 	var colorcheck = $('.color-'+id).val();
@@ -28,6 +32,7 @@ function add_cart_catalog(element){
 		url: "/ajax/add_cart.php",
 		data: ( {"id" : id, "quant": quant, "articul": articul, "color": colorcheck} ),
 		dataType: "json",
+		error: roomCartError,
 		success: function(res){
 			setBasketCountText(res.count);
 			sendGA(res.data);
@@ -47,6 +52,7 @@ function addcart(id) {
 			url: "/ajax/add_cart.php",
 			data: ( {"id" : id, "quant": quant, "color": colorcheck, "articul": articul} ),
 			dataType: "json",
+			error: roomCartError,
 			success: function(res){
 				setBasketCountText(res.count)
 				sendGA(res.data);
@@ -86,6 +92,7 @@ function addcartcart(id, idcart) {
 			type: "POST",
 			url: "/ajax/add_cart.php",
 			data: sizes + "&color=" + colorcheck + "&id=" + id + "&quant=" + quant + "&height=" + height.val() + "&width=" + width.val() + "&price=" + price + "&idcart=" + idcart,
+			error: roomCartError,
 			success: function(html){
 				window.location.href='/cart/';
 			}
@@ -125,6 +132,7 @@ function addcartq(id) {
 			url: "/ajax/add_cart.php",
 			data: sizes + "&color=" + colorcheck + "&id=" + id + "&quant=" + quant + "&height=" + height.val() + "&width=" + width.val() + "&price=" + price,
 			dataType: "json",
+			error: roomCartError,
 			success: function(res){
 				setBasketCountText(res.count);
 				sendGA(res.data);
@@ -182,6 +190,7 @@ function addcartqcolor(id) {
 			type: "POST",
 			url: "/ajax/add_cart.php",
 			data: sizes + "&color=" + colorcheck + "&id=" + id + "&quant=" + quant + "&height=" + height.val() + "&width=" + width.val() + "&price=" + price + "&articul=" + sku,
+			error: roomCartError,
 			success: function(res){
 				setBasketCountText(res.count);
 				sendGA(res.data);
