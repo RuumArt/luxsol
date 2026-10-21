@@ -10,13 +10,9 @@ class AdvanceInvoiceReminderTemplate
     public const DESCRIPTION = <<<'TXT'
 #EMAIL# - E-mail zákazníka
 #ORDER_NUMBER# - Číslo objednávky
-#INVOICE_NUMBER# - Číslo zálohovej faktúry
-#AMOUNT_WITH_CURRENCY# - Suma na úhradu vrátane meny, napr. 23,80 €
-#DUE_DATE# - Dátum splatnosti, napr. 23. 09. 2026
-#IBAN# - IBAN účtu na úhradu
-#VARIABLE_SYMBOL# - Variabilný symbol
 V HTML tele sa používajú bezpečne escapované varianty #HTML_NAZOV_POLA#.
-Šablóna sama nekontroluje stav platby ani nespúšťa odosielanie.
+Automaticky na 3. a 5. deň od prechodu do Odoslaná ZF, iba nevyplatený bankový prevod.
+Číslo faktúry a platobné údaje sa neuvádzajú; zákazník použije už zaslanú faktúru.
 TXT;
 
     public static function fields(array $source, string $site): array
@@ -42,7 +38,7 @@ TXT;
             'REPLY_TO' => 'office@luxsol.sk',
             'BCC' => '',
             'CC' => '',
-            'SUBJECT' => 'Pripomenutie úhrady zálohovej faktúry č. #INVOICE_NUMBER# – Luxsol.sk',
+            'SUBJECT' => 'Pripomenutie platby k objednávke č. #ORDER_NUMBER# – Luxsol.sk',
             'BODY_TYPE' => 'html',
             'MESSAGE' => $body,
         ];

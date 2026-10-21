@@ -111,9 +111,8 @@ namespace {
     ], 's1');
     $check('reminder reuses existing customer theme, sender and site', $reminderTemplate['SITE_TEMPLATE_ID'] === 'MM' && $reminderTemplate['EMAIL_FROM'] === 'info@luxsol.sk' && $reminderTemplate['LID'] === ['s1']);
     $check('reminder has an independent event and no blind copies', $reminderTemplate['EVENT_NAME'] === 'LUXSOL_ADVANCE_INVOICE_REMINDER' && $reminderTemplate['EMAIL_TO'] === '#EMAIL#' && $reminderTemplate['BCC'] === '' && $reminderTemplate['CC'] === '');
-    foreach (['INVOICE_NUMBER','ORDER_NUMBER','AMOUNT_WITH_CURRENCY','DUE_DATE','IBAN','VARIABLE_SYMBOL'] as $field) {
-        $check('reminder escapes HTML field '.$field, str_contains($reminderTemplate['MESSAGE'], '#HTML_'.$field.'#') && !str_contains($reminderTemplate['MESSAGE'], '#'.$field.'#'));
-    }
+    $check('reminder escapes the order number', str_contains($reminderTemplate['MESSAGE'], '#HTML_ORDER_NUMBER#') && !str_contains($reminderTemplate['MESSAGE'], '#ORDER_NUMBER#'));
+    $check('reminder needs no unavailable invoice data', !preg_match('/#(?:HTML_)?(?:INVOICE_NUMBER|AMOUNT_WITH_CURRENCY|DUE_DATE|IBAN|VARIABLE_SYMBOL)#/', $reminderTemplate['MESSAGE'] . $reminderTemplate['SUBJECT']));
     $reminderFields = [];
     MailHandlers::prepareNewOrderNotification($reminderFields, $reminderTemplate);
     $check('reminder receives customer mail preparation', ($reminderFields['=X-Luxsol-Notification'] ?? '') === 'advance-invoice-reminder');

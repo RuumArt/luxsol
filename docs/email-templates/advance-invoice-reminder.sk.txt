@@ -1,15 +1,10 @@
-Predmet: Pripomenutie úhrady zálohovej faktúry č. #INVOICE_NUMBER#
+Predmet: Pripomenutie platby k objednávke č. #ORDER_NUMBER# – Luxsol.sk
 
 Dobrý deň,
 
-radi by sme vám pripomenuli úhradu zálohovej faktúry č. #INVOICE_NUMBER# k objednávke č. #ORDER_NUMBER#. Platbu zatiaľ neevidujeme.
+radi by sme vám pripomenuli úhradu zálohovej faktúry, ktorú sme vám zaslali k objednávke č. #ORDER_NUMBER#. Úhradu zatiaľ neevidujeme.
 
-Suma na úhradu: #AMOUNT_WITH_CURRENCY#
-Dátum splatnosti: #DUE_DATE#
-IBAN: #IBAN#
-Variabilný symbol: #VARIABLE_SYMBOL#
-
-Platobné údaje nájdete aj na zálohovej faktúre. Pri úhrade, prosím, uveďte správny variabilný symbol, aby sme platbu mohli priradiť k vašej objednávke.
+Pri platbe, prosím, použite sumu a platobné údaje uvedené v už zaslanej zálohovej faktúre.
 
 Ak ste už faktúru uhradili, ďakujeme. Platba môže byť ešte na ceste; neposielajte ju opakovane. V prípade otázok nám odpovedzte na tento e-mail alebo napíšte na office@luxsol.sk.
 

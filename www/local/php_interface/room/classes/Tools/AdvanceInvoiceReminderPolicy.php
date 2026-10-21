@@ -8,6 +8,20 @@ class AdvanceInvoiceReminderPolicy
     public const DAYS = [3, 5];
     public const TIMEZONE = 'Europe/Bratislava';
 
+    /** A paid payment also suppresses reminders on partially paid orders. */
+    public static function forOrder(array $state, \DateTimeInterface $now): ?int
+    {
+        $hour = (int)\DateTimeImmutable::createFromInterface($now)
+            ->setTimezone(new \DateTimeZone(self::TIMEZONE))->format('G');
+        if (($state['status'] ?? '') !== 'OZ' || empty($state['bank_transfer'])
+            || !filter_var($state['email'] ?? '', FILTER_VALIDATE_EMAIL)
+            || empty($state['status_ts']) || $hour < 9 || $hour >= 18) {
+            return null;
+        }
+        return self::dueDay(new \DateTimeImmutable('@' . (int)$state['status_ts']), $now,
+            !empty($state['paid']), !empty($state['cancelled']));
+    }
+
     /**
      * Only the reminder for today's window can be sent. Missed reminders are not
      * accumulated and delivered together after a scheduler outage.
