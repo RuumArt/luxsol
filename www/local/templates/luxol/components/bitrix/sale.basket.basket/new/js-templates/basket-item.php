@@ -463,8 +463,8 @@ if (!empty($arParams['LABEL_PROP_POSITION']))
 			}
 			?>
 			
+			{{^IS_SIZES}}
 			<td class="basket-items-list-item-amount">
-				{{^IS_SIZES}}
 				<div class="basket-item-block-amount{{#NOT_AVAILABLE}} disabled{{/NOT_AVAILABLE}}"
 					data-entity="basket-item-quantity-block">
 					<span class="basket-item-amount-btn-minus" data-entity="basket-item-quantity-minus"></span>
@@ -501,8 +501,8 @@ if (!empty($arParams['LABEL_PROP_POSITION']))
 						<div class="basket-items-list-item-overlay"></div>
 					{{/SHOW_LOADING}}
 				</div>
-				{{/IS_SIZES}}
 			</td>
+			{{/IS_SIZES}}
 			<?
 			if ($useSumColumn)
 			{
