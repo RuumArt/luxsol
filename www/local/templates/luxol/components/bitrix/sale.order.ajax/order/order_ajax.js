@@ -6731,10 +6731,8 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 			var propsItemNode = BX.create('DIV'),
 				textHtml = '',
 				propertyType = property.getType() || '',
-				propertyCode = String(property.getSettings().CODE || '').toUpperCase().replace(/[СČ]/g, 'C'),
-				deliveryAddressNames = {ADRESA_2: 'Adresa', MESTO_2: 'Mesto', PSC_2: 'PSČ'},
-				propertyName = deliveryAddressNames[propertyCode] || property.getName(),
-				propertyDesc = deliveryAddressNames[propertyCode] ? '' : (property.getDescription() || ''),
+				propertyName = property.getName(),
+				propertyDesc = property.getDescription() || '',
 				label;
 
 			if (disabled)
