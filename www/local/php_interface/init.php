@@ -76,6 +76,7 @@ AddEventHandler("sale", "OnOrderNewSendEmail", "ModifyOrderSaleMailsNew");
 function ModifyOrderSaleMailsNew($orderID, &$eventName, &$arFields)
 {
     $order = Sale\Order::load($orderID);
+    $orderNumber = htmlspecialchars((string)($order->getField('ACCOUNT_NUMBER') ?: $orderID));
     $basket = $order->getBasket();
     $propsCollection = $order->getPropertyCollection();
 
@@ -173,8 +174,11 @@ function ModifyOrderSaleMailsNew($orderID, &$eventName, &$arFields)
                 $extras[] = htmlspecialchars($sizeLine);
             }
         }
-        if (!empty($props['SQUARE']['VALUE'])) {
-            $extras[] = 'Plocha: ' . htmlspecialchars(Format::number($props['SQUARE']['VALUE'])) . ' m²';
+        if (!empty($props['SQUARE']['VALUE']) || $sizeLines !== []) {
+            $extras[] = 'Plocha: ' . htmlspecialchars(Format::area(
+                $props['SQUARE']['VALUE'] ?? 0,
+                (string)($props['SIZES_STR']['VALUE'] ?? '')
+            )) . ' m²';
         }
         if (!empty($props['COLOR']['VALUE'])) {
             $extras[] = 'Farba: ' . htmlspecialchars($props['COLOR']['VALUE']);
@@ -274,7 +278,7 @@ function ModifyOrderSaleMailsNew($orderID, &$eventName, &$arFields)
 
     $deliveryDetailsHtml = $shipment_name;
     if ($zas_add !== '') {
-        $deliveryDetailsHtml .= '<br><span style="color: #6c757d; font-size: 13px; font-weight: 400;">Zásielkovňa: ' . htmlspecialchars($zas_add) . ($zas_place !== '' ? ', ' . htmlspecialchars($zas_place) : '') . '</span>';
+        $deliveryDetailsHtml .= '<br><span style="color: #6c757d; font-size: 13px; font-weight: 400;">Výdajné miesto: ' . htmlspecialchars($zas_add) . ($zas_place !== '' ? ', ' . htmlspecialchars($zas_place) : '') . '</span>';
     }
 
     // Header (комментарий: <!-- Header -->)
@@ -282,10 +286,10 @@ function ModifyOrderSaleMailsNew($orderID, &$eventName, &$arFields)
                     <tr>
                         <td style="background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%); padding: 40px 30px; text-align: center;">
                             <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 600; letter-spacing: -0.5px;">
-                                Nová objednávka
+                                Potvrdenie objednávky
                             </h1>
                             <p style="margin: 10px 0 0 0; color: rgba(255,255,255,0.9); font-size: 16px; font-weight: 400;">
-                                Ďakujeme za vašu objednávku!
+                                Vašu objednávku č. ' . $orderNumber . ' sme úspešne prijali.
                             </p>
                         </td>
                     </tr>';
@@ -298,7 +302,7 @@ function ModifyOrderSaleMailsNew($orderID, &$eventName, &$arFields)
                                 <tr>
                                     <td style="background-color: #f8f9fa; padding: 15px 20px; border-radius: 6px; border-left: 4px solid #4A90E2;">
                                         <p style="margin: 0; color: #495057; font-size: 14px; font-weight: 500;">
-                                            Číslo objednávky: <span style="color: #4A90E2; font-weight: 600;">#' . (int)$orderID . '</span>
+                                            Číslo objednávky: <span style="color: #4A90E2; font-weight: 600;">' . $orderNumber . '</span>
                                         </p>
                                         <p style="margin: 5px 0 0 0; color: #6c757d; font-size: 13px;">
                                             Dátum: ' . htmlspecialchars($orderDateFormatted) . '
@@ -447,11 +451,10 @@ function ModifyOrderSaleMailsNew($orderID, &$eventName, &$arFields)
                         <td style="padding: 0 30px 30px 30px; background-color: #ffffff;">
                             <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); padding: 30px; border-radius: 6px; text-align: center;">
                                 <p style="margin: 0 0 10px 0; color: #212529; font-size: 18px; font-weight: 600;">
-                                    Ďakujeme za vašu objednávku!
+                                    O ďalšom stave vašej objednávky Vás budeme informovať e-mailom a SMS.
                                 </p>
                                 <p style="margin: 0; color: #6c757d; font-size: 14px; line-height: 1.6;">
-                                    Dostali sme vašu objednávku a začali sme ju spracovávať.<br>
-                                    Dostanete upozornenie o stave objednávky na uvedený email.
+                                    Ďakujeme za Vašu objednávku a dôveru.
                                 </p>
                             </div>
                         </td>

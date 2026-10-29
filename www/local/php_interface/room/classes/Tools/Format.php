@@ -121,6 +121,20 @@ class Format
         return self::number($value, $decimals);
     }
 
+    /** Old basket area values were rounded to one decimal; recover precision from the cuts. */
+    public static function area($value, string $sizesStr = ''): string
+    {
+        $sizes = self::parseSizes($sizesStr);
+        if ($sizes !== []) {
+            $value = 0;
+            foreach ($sizes as $size) {
+                $value += $size['height'] * $size['width'] * $size['count'];
+            }
+        }
+
+        return self::number($value, 2);
+    }
+
     /**
      * Вес с единицей измерения: 1944 -> "1944 g"
      *

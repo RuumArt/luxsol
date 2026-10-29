@@ -95,6 +95,15 @@ namespace {
     $newFields = [];
     MailHandlers::prepareNewOrderNotification($newFields, $newTemplate);
     $check('customer template is marked without modifying compiled placeholders', ($newFields['=X-Luxsol-Notification'] ?? '') === 'new-order' && $newTemplate['MESSAGE'] === '#EMAIL_PRODUCTS_TABLE#');
+    $subjectTemplate = $newTemplate + ['SUBJECT'=>'#SITE_NAME#: Nová objednávka č. #ORDER_ID#'];
+    MailHandlers::prepareNewOrderNotification($newFields, $subjectTemplate);
+    $check('customer subject confirms the order and retains placeholders', $subjectTemplate['SUBJECT'] === '#SITE_NAME#: Potvrdenie objednávky č. #ORDER_ID#');
+    $contactMail = ['HEADER'=>['X-Luxsol-Notification'=>'new-order'], 'BODY'=>'<html><head><title>Nová objednávka</title></head><body><p>Ak máte otázky, kontaktujte nás:</p><a href="tel:+421944627014">+421 944 627 014</a><a href="mailto:office@luxsol.sk">office@luxsol.sk</a></body></html>'];
+    $contactBody = MailHandlers::prepareCustomerMail(new \Bitrix\Main\Event([$contactMail]))->getParameters()['BODY'];
+    $check('customer theme uses confirmation title and new contact introduction', str_contains($contactBody, '<title>Potvrdenie objednávky</title>') && str_contains($contactBody, 'Ak máte akékoľvek otázky, neváhajte nás kontaktovať:'));
+    $check('contact details remain after their introduction', strpos($contactBody, 'neváhajte nás kontaktovať:') < strpos($contactBody, 'tel:+421944627014') && str_contains($contactBody, 'mailto:office@luxsol.sk'));
+    $contactMail['BODY'] = $contactBody;
+    $check('contact wording is idempotent', MailHandlers::prepareCustomerMail(new \Bitrix\Main\Event([$contactMail]))->getParameters()['BODY'] === $contactBody);
     $mailParams = ['MESSAGE_ID'=>'13909.30','HEADER'=>['From'=>'info@luxsol.sk','X-Luxsol-Notification'=>'new-order'], 'BODY'=>'<html><body><p>Products</p><p>© 2026 Názov obchodu. Všetky práva vyhradené.</p></body></html>'];
     $prepared = MailHandlers::prepareCustomerMail(new \Bitrix\Main\Event([$mailParams]))->getParameters();
     $check('compiled theme footer gets real merchant and current year', $prepared['BODY'] === '<html><body><p>Products</p><p>© '.date('Y').' Luxsol s.r.o. Všetky práva vyhradené.</p></body></html>');

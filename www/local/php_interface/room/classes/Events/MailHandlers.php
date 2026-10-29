@@ -27,6 +27,9 @@ class MailHandlers
         }
 
         $fields['=X-Luxsol-Notification'] = $type;
+        if ($type === 'new-order' && isset($template['SUBJECT'])) {
+            $template['SUBJECT'] = str_replace('Nová objednávka', 'Potvrdenie objednávky', $template['SUBJECT']);
+        }
     }
 
     /** Prevent Bitrix from appending MID to the body, retaining it as an X-MID header. */
@@ -52,6 +55,13 @@ class MailHandlers
         );
         if ($notification === 'advance-invoice-reminder') {
             $body = preg_replace('~<title>.*?</title>~si', '<title>Pripomenutie platby</title>', $body, 1);
+        } else {
+            $body = preg_replace('~<title>.*?</title>~si', '<title>Potvrdenie objednávky</title>', $body, 1);
+            $body = str_replace(
+                'Ak máte otázky, kontaktujte nás:',
+                'Ak máte akékoľvek otázky, neváhajte nás kontaktovať:',
+                $body
+            );
         }
 
         return new \Bitrix\Main\EventResult(\Bitrix\Main\EventResult::SUCCESS, [
