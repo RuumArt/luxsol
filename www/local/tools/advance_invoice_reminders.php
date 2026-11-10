@@ -49,7 +49,7 @@ try {
             Journal::getEntity()->createDbTable();
         }
         $message = new \CEventMessage();
-        if (!$message->Update($template['ID'], ['MESSAGE'=>$fields['MESSAGE'], 'SUBJECT'=>$fields['SUBJECT']])) {
+        if (!$message->Update($template['ID'], ['MESSAGE'=>$fields['MESSAGE'], 'SUBJECT'=>$fields['SUBJECT'], 'SITE_TEMPLATE_ID'=>$fields['SITE_TEMPLATE_ID']])) {
             throw new \RuntimeException('Cannot update reminder template: ' . $message->LAST_ERROR);
         }
         if (!\CEventType::Update(['EVENT_NAME'=>Template::EVENT_NAME], ['DESCRIPTION'=>Template::DESCRIPTION])) {

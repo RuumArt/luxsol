@@ -44,6 +44,7 @@ namespace {
     require $root . '/www/local/php_interface/room/classes/Events/MailHandlers.php';
     require $root . '/www/local/php_interface/room/classes/Tools/Format.php';
     require $root . '/www/local/php_interface/room/classes/Tools/AdvanceInvoiceReminderTemplate.php';
+    require $root . '/www/local/php_interface/room/classes/Tools/CustomerNotificationTemplates.php';
     use Bitrix\Main\Mail\Internal\EventTable;
     use Room\Tools\OrderConfirmation;
     use Room\Events\MailHandlers;
@@ -118,7 +119,7 @@ namespace {
     $reminderTemplate = \Room\Tools\AdvanceInvoiceReminderTemplate::fields([
         'SITE_TEMPLATE_ID'=>'MM', 'BODY_TYPE'=>'html', 'EMAIL_FROM'=>'info@luxsol.sk', 'LANGUAGE_ID'=>'ru',
     ], 's1');
-    $check('reminder reuses existing customer theme, sender and site', $reminderTemplate['SITE_TEMPLATE_ID'] === 'MM' && $reminderTemplate['EMAIL_FROM'] === 'info@luxsol.sk' && $reminderTemplate['LID'] === ['s1']);
+    $check('reminder uses shared customer theme, sender and site', $reminderTemplate['SITE_TEMPLATE_ID'] === 'luxsol_mail' && $reminderTemplate['EMAIL_FROM'] === 'info@luxsol.sk' && $reminderTemplate['LID'] === ['s1']);
     $check('reminder has an independent event and no blind copies', $reminderTemplate['EVENT_NAME'] === 'LUXSOL_ADVANCE_INVOICE_REMINDER' && $reminderTemplate['EMAIL_TO'] === '#EMAIL#' && $reminderTemplate['BCC'] === '' && $reminderTemplate['CC'] === '');
     $check('reminder escapes the order number', str_contains($reminderTemplate['MESSAGE'], '#HTML_ORDER_NUMBER#') && !str_contains($reminderTemplate['MESSAGE'], '#ORDER_NUMBER#'));
     $check('reminder needs no unavailable invoice data', !preg_match('/#(?:HTML_)?(?:INVOICE_NUMBER|AMOUNT_WITH_CURRENCY|DUE_DATE|IBAN|VARIABLE_SYMBOL)#/', $reminderTemplate['MESSAGE'] . $reminderTemplate['SUBJECT']));

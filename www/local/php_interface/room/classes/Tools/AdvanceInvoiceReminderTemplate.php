@@ -30,8 +30,7 @@ TXT;
             'ACTIVE' => 'Y',
             'EVENT_NAME' => self::EVENT_NAME,
             'LID' => [$site],
-            // Same mail theme and language selection as the existing new-order mail.
-            'SITE_TEMPLATE_ID' => $source['SITE_TEMPLATE_ID'],
+            'SITE_TEMPLATE_ID' => CustomerNotificationTemplates::THEME,
             'LANGUAGE_ID' => $source['LANGUAGE_ID'] ?? null,
             'EMAIL_FROM' => $source['EMAIL_FROM'],
             'EMAIL_TO' => '#EMAIL#',

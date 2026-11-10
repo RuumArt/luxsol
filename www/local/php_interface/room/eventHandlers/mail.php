@@ -5,5 +5,7 @@ AddEventHandler("sale", "OnOrderNewSendEmail", ['\Room\Events\MailHandlers', 'On
 AddEventHandler('main', 'OnBeforeEventSend', ['\Room\Events\MailHandlers', 'preparePaymentNotification']);
 AddEventHandler('main', 'OnBeforeEventSend', ['\Room\Events\MailHandlers', 'prepareNewOrderNotification']);
 AddEventHandler('main', 'OnBeforeEventSend', ['\Room\Tools\AdvanceInvoiceReminders', 'guardEvent'], 50);
+AddEventHandler('main', 'OnBeforeEventSend', ['\Room\Tools\ProductionUpdates', 'guardEvent'], 50);
 \Bitrix\Main\EventManager::getInstance()->addEventHandler('main', 'OnBeforeMailSend', ['\Room\Tools\AdvanceInvoiceReminders', 'guardTransport'], false, 50);
+\Bitrix\Main\EventManager::getInstance()->addEventHandler('main', 'OnBeforeMailSend', ['\Room\Tools\ProductionUpdates', 'guardTransport'], false, 50);
 \Bitrix\Main\EventManager::getInstance()->addEventHandler('main', 'OnBeforeMailSend', ['\Room\Events\MailHandlers', 'prepareCustomerMail']);

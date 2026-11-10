@@ -16,6 +16,8 @@ php -d short_open_tag=1 -d display_errors=0 scripts/tests/new-order-mail.php
 php -d short_open_tag=1 -d display_errors=0 scripts/tests/catalog-selection.php
 php -d short_open_tag=1 -d display_errors=0 scripts/tests/advance-invoice-reminders.php
 php -d short_open_tag=1 -d display_errors=0 scripts/tests/advance-invoice-dispatch.php
+php -d short_open_tag=1 -d display_errors=0 scripts/tests/production-updates.php
+php -d short_open_tag=1 -d display_errors=0 scripts/tests/production-update-dispatch.php
 php -d short_open_tag=1 -d display_errors=0 scripts/tests/merchant-feeds.php
 node --check www/local/templates/luxol/components/bitrix/sale.order.ajax/order/order_ajax.js
 node scripts/tests/ecommerce-client.cjs
