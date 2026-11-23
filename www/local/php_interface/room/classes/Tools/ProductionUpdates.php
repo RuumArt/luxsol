@@ -17,6 +17,18 @@ class ProductionUpdates
     protected static function now(): \DateTimeImmutable { return new \DateTimeImmutable(); }
     public static function config(): array { return json_decode(Option::get('main', self::OPTION, '{}'), true) ?: []; }
 
+    private static function bankSystemIds(): array
+    {
+        static $ids = null;
+        if ($ids === null) {
+            $rows = \Bitrix\Sale\PaySystem\Manager::getList([
+                'filter'=>['=ACTION_FILE'=>'bill'], 'select'=>['ID'],
+            ])->fetchAll();
+            $ids = array_map('intval', array_column($rows, 'ID'));
+        }
+        return $ids;
+    }
+
     public static function snapshot(int $id): ?array
     {
         $row = OrderTable::getById($id)->fetch();
@@ -29,13 +41,19 @@ class ProductionUpdates
             if (Format::sizeLines((string)($props['SIZES_STR']['VALUE'] ?? '')) !== []) { $net = true; break; }
         }
         $codIds = array_map('intval', self::config()['cod_pay_system_ids'] ?? []);
+        $bankIds = self::bankSystemIds();
         $hasPayment = false;
         $prepaymentOutstanding = false;
         $requiresPrepayment = false;
         $prepaymentPaidAt = 0;
+        $bankTransfer = false;
+        $bankPaidAt = 0;
+        $bankDateMissing = false;
         foreach ($order->getPaymentCollection() as $payment) {
             if ((float)$payment->getSum() <= 0) { continue; }
             $hasPayment = true;
+            $isBank = in_array((int)$payment->getPaymentSystemId(), $bankIds, true);
+            $bankTransfer = $bankTransfer || $isBank;
             // Unknown and mixed unpaid prepayment methods are blocked, even if
             // another part of the order uses cash on delivery.
             if ($payment->isInner() || !in_array((int)$payment->getPaymentSystemId(), $codIds, true)) {
@@ -44,8 +62,23 @@ class ProductionUpdates
                     $prepaymentOutstanding = true;
                 } else {
                     $date = $payment->getField('DATE_PAID');
+                    $paymentPaidAt = 0;
                     if ($date instanceof DateTime || $date instanceof \DateTimeInterface) {
-                        $prepaymentPaidAt = max($prepaymentPaidAt, $date->getTimestamp());
+                        $paymentPaidAt = $date->getTimestamp();
+                        $prepaymentPaidAt = max($prepaymentPaidAt, $paymentPaidAt);
+                    }
+                    if ($isBank) {
+                        // The editable "Дата прихода" is a calendar date. Preserve
+                        // its day independently of the PHP/server timezone.
+                        $receiptDate = $payment->getField('PAY_VOUCHER_DATE');
+                        if ($receiptDate instanceof \Bitrix\Main\Type\Date || $receiptDate instanceof \DateTimeInterface) {
+                            $actualPaidAt = (new \DateTimeImmutable($receiptDate->format('Y-m-d') . ' 00:00:00',
+                                new \DateTimeZone(ProductionUpdatePolicy::TIMEZONE)))->getTimestamp();
+                        } else {
+                            $actualPaidAt = $paymentPaidAt;
+                        }
+                        if (!$actualPaidAt) { $bankDateMissing = true; }
+                        $bankPaidAt = max($bankPaidAt, $actualPaidAt);
                     }
                 }
             }
@@ -57,10 +90,15 @@ class ProductionUpdates
             && ($orderPaidDate instanceof DateTime || $orderPaidDate instanceof \DateTimeInterface)) {
             $prepaymentPaidAt = $orderPaidDate->getTimestamp();
         }
+        if ($bankTransfer && (!$bankPaidAt || $bankDateMissing) && $row['PAYED'] === 'Y'
+            && ($orderPaidDate instanceof DateTime || $orderPaidDate instanceof \DateTimeInterface)) {
+            $bankPaidAt = max($bankPaidAt, $orderPaidDate->getTimestamp());
+        }
         return ['id'=>$id, 'number'=>(string)($row['ACCOUNT_NUMBER'] ?: $id), 'site'=>$row['LID'],
             'status'=>$row['STATUS_ID'], 'cancelled'=>$row['CANCELED'] === 'Y', 'paid'=>$row['PAYED'] === 'Y',
             'payment_ready'=>$row['PAYED'] === 'Y' || ($hasPayment && !$prepaymentOutstanding),
             'prepayment_paid_ts'=>$prepaymentPaidAt,
+            'bank_transfer'=>$bankTransfer, 'bank_paid_ts'=>$bankPaidAt,
             'created_ts'=>$row['DATE_INSERT']->getTimestamp(), 'custom_net'=>$net,
             'email'=>$email ? trim((string)$email->getValue()) : ''];
     }

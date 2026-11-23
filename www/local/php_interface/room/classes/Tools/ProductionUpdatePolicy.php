@@ -11,17 +11,23 @@ class ProductionUpdatePolicy
     {
         $date = \DateTimeImmutable::createFromInterface($created)
             ->setTimezone(new \DateTimeZone(self::TIMEZONE))->setTime(10, 0);
-        for ($days = 0; $days < 3;) {
+        for ($days = 0; $days < 5;) {
             $date = $date->modify('+1 day');
             if ((int)$date->format('N') <= 5) { $days++; }
         }
         return $date;
     }
 
-    /** Late prepayment moves the one-off notification to the next available weekday at 10. */
-    public static function scheduledAt(array $state): \DateTimeImmutable
+    /** Transfers count from the actual payment date; other orders count from creation. */
+    public static function scheduledAt(array $state): ?\DateTimeImmutable
     {
-        $due = self::dueAt(new \DateTimeImmutable('@' . (int)$state['created_ts']));
+        $start = (int)$state['created_ts'];
+        if (!empty($state['bank_transfer'])) {
+            $bankPaidAt = (int)($state['bank_paid_ts'] ?? 0);
+            if (!$bankPaidAt) { return null; }
+            $start = max($start, $bankPaidAt);
+        }
+        $due = self::dueAt(new \DateTimeImmutable('@' . $start));
         $paidAt = (int)($state['prepayment_paid_ts'] ?? 0);
         if ($paidAt <= $due->getTimestamp()) { return $due; }
 
@@ -40,14 +46,15 @@ class ProductionUpdatePolicy
             || (int)$state['created_ts'] < (int)($config['active_since'] ?? PHP_INT_MAX)) {
             return false;
         }
-        // The timer starts at creation, not at a status transition. Waiting statuses
-        // are only a filter: a paid OZ need not be moved back to N to receive mail.
+        // Status transitions never start the timer. A paid OZ need not be moved
+        // back to N; bank transfers use their separately recorded receipt date.
         if (!in_array($state['status'] ?? '', $config['pending_statuses'] ?? [], true)
             || empty($state['payment_ready'])) { return false; }
         // An invoice-sent status always requires the actual paid marker, including
         // an accidentally retained COD method on that order.
         if (($state['status'] ?? '') === 'OZ' && empty($state['paid'])) { return false; }
         $due = self::scheduledAt($state);
+        if (!$due) { return false; }
         $local = \DateTimeImmutable::createFromInterface($now)->setTimezone(new \DateTimeZone(self::TIMEZONE));
         return $local >= $due && $local < $due->modify('+1 hour');
     }

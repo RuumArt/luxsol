@@ -16,10 +16,14 @@ namespace Bitrix\Main\Config {
 }
 namespace Bitrix\Main\Type {
     // Real Bitrix DateTime wraps PHP's DateTime; it does not implement DateTimeInterface.
-    class DateTime {
-        public function __construct(private ?int $timestamp=null) { $this->timestamp ??= time(); }
-        public static function createFromTimestamp($ts) { return new self($ts); }
-        public function getTimestamp() { return $this->timestamp; }
+    class Date {
+        private \DateTimeImmutable $value;
+        public function __construct(?string $date=null) { $this->value=new \DateTimeImmutable($date??'now'); }
+        public function getTimestamp() { return $this->value->getTimestamp(); }
+        public function format($format) { return $this->value->format($format); }
+    }
+    class DateTime extends Date {
+        public static function createFromTimestamp($ts) { return new self('@'.$ts); }
     }
 }
 namespace Bitrix\Sale\Internals {
@@ -50,7 +54,11 @@ namespace Bitrix\Sale {
                 public function getPaymentSystemId() { return $this->data['system']; }
                 public function isPaid() { return $this->data['paid'] ?? false; }
                 public function isInner() { return $this->data['inner'] ?? false; }
-                public function getField($name) { return $name === 'DATE_PAID' ? ($this->data['date_paid'] ?? null) : null; }
+                public function getField($name) { return match($name) {
+                    'DATE_PAID'=>$this->data['date_paid']??null,
+                    'PAY_VOUCHER_DATE'=>$this->data['receipt_date']??null,
+                    default=>null,
+                }; }
             }, $this->row['PAYMENTS'] ?? [['system'=>5,'paid'=>$this->row['PAYED']==='Y']]);
         }
         public function getPropertyCollection() { return new class($this->row) {
@@ -58,6 +66,13 @@ namespace Bitrix\Sale {
             public function getUserEmail() { return new class($this->row) {
                 public function __construct(private array $row) {} public function getValue() { return $this->row['EMAIL']; }
             }; }
+        }; }
+    }
+}
+namespace Bitrix\Sale\PaySystem {
+    class Manager {
+        public static function getList($params) { return new class {
+            public function fetchAll() { return [['ID'=>5]]; }
         }; }
     }
 }
@@ -104,8 +119,8 @@ namespace {
     $passed=0;
     $check=static function($name,$ok)use(&$passed){if(!$ok)throw new \RuntimeException('FAIL: '.$name);$passed++;echo 'PASS: ',$name,PHP_EOL;};
     $reset=static function(){
-        TestProduction::$clock=new \DateTimeImmutable('2026-11-12 10:00:00 Europe/Bratislava');
-        OrderTable::$rows=[101=>['ID'=>101,'ACCOUNT_NUMBER'=>'ORDER-101','DATE_INSERT'=>new \DateTimeImmutable('2026-11-09 21:00:00 Europe/Bratislava'),'LID'=>'s1','STATUS_ID'=>'N','PAYED'=>'Y','CANCELED'=>'N','EMAIL'=>'buyer@example.test']];
+        TestProduction::$clock=new \DateTimeImmutable('2026-11-16 10:00:00 Europe/Bratislava');
+        OrderTable::$rows=[101=>['ID'=>101,'ACCOUNT_NUMBER'=>'ORDER-101','DATE_INSERT'=>new \DateTimeImmutable('2026-11-09 21:00:00 Europe/Bratislava'),'DATE_PAYED'=>new \DateTimeImmutable('2026-11-09 22:00:00 Europe/Bratislava'),'LID'=>'s1','STATUS_ID'=>'N','PAYED'=>'Y','CANCELED'=>'N','EMAIL'=>'buyer@example.test']];
         Log::$rows=[];Event::$delivered=[];Event::$beforeCompile=Event::$beforeTransport=null;Event::$fail=false;
         \Bitrix\Main\Config\Option::$config['enabled']=true;
     };
@@ -126,14 +141,43 @@ namespace {
     TestProduction::$clock=$lateAt;
     TestProduction::run(true);
     $check('late payment does not send an immediate email', !Event::$delivered && !Log::$rows);
-    TestProduction::$clock=new \DateTimeImmutable('2026-11-16 10:00 Europe/Bratislava');
+    TestProduction::$clock=new \DateTimeImmutable('2026-11-20 10:00 Europe/Bratislava');
     TestProduction::run(true);TestProduction::run(true);
-    $check('Friday late payment sends once on Monday at ten',count(Event::$delivered)===1);
+    $check('Friday bank payment sends once on the following Friday at ten',count(Event::$delivered)===1);
     $reset();OrderTable::$rows[101]['DATE_PAYED']=\Bitrix\Main\Type\DateTime::createFromTimestamp($lateAt->getTimestamp());
-    TestProduction::$clock=new \DateTimeImmutable('2026-11-16 10:00 Europe/Bratislava');TestProduction::run(true);
+    TestProduction::$clock=new \DateTimeImmutable('2026-11-20 10:00 Europe/Bratislava');TestProduction::run(true);
     $check('legacy payment uses the order paid date as fallback',count(Event::$delivered)===1);
+    $reset();
+    OrderTable::$rows[101]['STATUS_ID']='OZ';
+    OrderTable::$rows[101]['DATE_STATUS']=new \DateTimeImmutable('2026-11-23 17:00 Europe/Bratislava');
+    OrderTable::$rows[101]['PAYMENTS']=[['system'=>5,'paid'=>true,
+        'date_paid'=>new \DateTimeImmutable('2026-11-23 17:00 Europe/Bratislava'),
+        'receipt_date'=>new \Bitrix\Main\Type\Date('2026-11-20')]];
+    TestProduction::$clock=new \DateTimeImmutable('2026-11-23 10:00 Europe/Bratislava');TestProduction::run(true);
+    $check('backdated receipt does not send on the day payment is recorded',!Event::$delivered && !Log::$rows);
+    TestProduction::$clock=new \DateTimeImmutable('2026-11-27 10:00 Europe/Bratislava');TestProduction::run(true);TestProduction::run(true);
+    $check('receipt Nov 20 recorded Nov 23 sends once Nov 27',count(Event::$delivered)===1);
+    OrderTable::$rows[101]['PAYMENTS'][0]['receipt_date']=new \Bitrix\Main\Type\Date('2026-11-23');
+    TestProduction::$clock=new \DateTimeImmutable('2026-11-30 10:00 Europe/Bratislava');TestProduction::run(true);
+    $check('editing receipt after an accepted notification does not resend',count(Event::$delivered)===1);
+    $reset();OrderTable::$rows[101]['PAYMENTS']=[['system'=>5,'paid'=>true,
+        'date_paid'=>new \DateTimeImmutable('2026-11-20 12:00 Europe/Bratislava'),
+        'receipt_date'=>new \Bitrix\Main\Type\Date('2026-11-10')]];
+    TestProduction::$clock=new \DateTimeImmutable('2026-11-23 10:00 Europe/Bratislava');TestProduction::run(true);
+    $check('receipt entered after five working days sends next available morning',count(Event::$delivered)===1);
+    $reset();OrderTable::$rows[101]['PAYMENTS']=[['system'=>5,'paid'=>true,
+        'date_paid'=>new \DateTimeImmutable('2026-11-23 12:00 Europe/Bratislava'),
+        'receipt_date'=>new \DateTimeImmutable('2026-11-20 00:00:00 +14:00')]];
+    TestProduction::$clock=new \DateTimeImmutable('2026-11-27 10:00 Europe/Bratislava');TestProduction::run(true);
+    $check('calendar receipt date is not shifted by server timezone',count(Event::$delivered)===1);
+    $reset();Event::$beforeTransport=static function(){
+        OrderTable::$rows[101]['PAYMENTS']=[['system'=>5,'paid'=>true,
+            'date_paid'=>new \DateTimeImmutable('2026-11-09 22:00 Europe/Bratislava'),
+            'receipt_date'=>new \Bitrix\Main\Type\Date('2026-11-20')]];
+    };TestProduction::run(true);
+    $check('receipt correction before SMTP stops a stale dispatch',!Event::$delivered && Log::$rows[101]['RESULT']==='blocked');
     $reset();OrderTable::$rows[101]['PAYED']='N';OrderTable::$rows[101]['PAYMENTS']=[['system'=>6,'paid'=>true,'date_paid'=>$lateAt]];
-    OrderTable::$rows[101]['DATE_PAYED']=$lateAt;TestProduction::$clock=new \DateTimeImmutable('2026-11-16 10:00 Europe/Bratislava');TestProduction::run(true);
+    OrderTable::$rows[101]['DATE_PAYED']=$lateAt;TestProduction::$clock=new \DateTimeImmutable('2026-11-20 10:00 Europe/Bratislava');TestProduction::run(true);
     $check('COD collection date cannot create an overdue production email',!Event::$delivered && !Log::$rows);
     foreach ([5,7,999] as $system) {
         $reset();OrderTable::$rows[101]['PAYED']='N';OrderTable::$rows[101]['PAYMENTS']=[['system'=>$system]];
