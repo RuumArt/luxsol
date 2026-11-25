@@ -6,7 +6,6 @@ use CUser;
 use CIBlockElement;
 use CIBlockPriceTools;
 use CCatalogProduct;
-use CPrice;
 
 /**
  * Класс для расчета цен товаров с учетом размеров и цвета
@@ -40,7 +39,10 @@ class PriceCalculator
         $productId = $params['productId'] ?? 0;
         $baseProductId = $params['baseProductId'] ?? $productId;
         $color = $params['color'] ?? self::COLOR_WHITE_NAME;
-        $basePrice = $params['basePrice'] ?? 0;
+        // RESULT_PRICE is in the same VAT basis as the product card/provider.
+        // PRICE.PRICE can be net; client-submitted prices are not authoritative.
+        $selectedPrice = self::getCatalogPrice((int)$productId);
+        $basePrice = $selectedPrice['gross'];
         $productProperties = $params['productProperties'] ?? [];
 
         // Фильтрация размеров
@@ -67,9 +69,10 @@ class PriceCalculator
             $basePrice
         );
 
+        $grossTotal = round($result['totalPrice'], 2);
         return [
-            'price' => round($result['totalPrice'], 2),
-            'priceNovat' => round($result['totalPriceNovat'], 2),
+            'price' => $grossTotal,
+            'priceNovat' => round($grossTotal / (1 + $selectedPrice['vatRate']), 2),
             'totalSquare' => round($result['totalSquare'], 1),
             'sizesStr' => $result['sizesStr'],
             'height' => $result['height'],
@@ -77,6 +80,25 @@ class PriceCalculator
             'countSum' => $result['countSum'],
             'sizesArr' => $sizesArr
         ];
+    }
+
+    /** Base price including VAT; sale discounts remain the basket provider's responsibility. */
+    private static function getCatalogPrice(int $productId): array
+    {
+        global $USER;
+        $groups = is_object($USER) && method_exists($USER, 'GetUserGroupArray')
+            ? $USER->GetUserGroupArray() : [2];
+        $optimal = CCatalogProduct::GetOptimalPrice($productId, 1, $groups, 'N', [], defined('SITE_ID') ? SITE_ID : 's1');
+        $result = $optimal['RESULT_PRICE'] ?? [];
+        $gross = (float)($result['BASE_PRICE'] ?? 0);
+        if ($gross <= 0) {
+            throw new \RuntimeException('Cenu tovaru sa nepodarilo overiť. Obnovte stránku.');
+        }
+        if (($result['VAT_INCLUDED'] ?? 'Y') !== 'Y') {
+            throw new \RuntimeException('Cenu tovaru s DPH sa nepodarilo overiť.');
+        }
+        return ['gross'=>$gross, 'vatRate'=>!empty($result['NO_VAT']) && $result['NO_VAT'] === 'Y'
+            ? 0.0 : max(0.0, (float)($result['VAT_RATE'] ?? 0))];
     }
 
     /**
@@ -105,12 +127,6 @@ class PriceCalculator
      */
     private static function getColorPrices(int $productId, string $colorName): array
     {
-        global $USER;
-        
-        if (!isset($USER) || !is_object($USER)) {
-            $USER = $GLOBALS['USER'] ?? null;
-        }
-
         $priceWhite = 0;
         $priceColor = 0;
 
@@ -124,29 +140,11 @@ class PriceCalculator
         // Получение ID цвета
         $colorId = self::getColorId($colorName);
 
-        // Поиск цен для белого и цветного товара
-        $userGroups = [];
-        if ($USER && method_exists($USER, 'GetUserGroupArray')) {
-            $userGroups = $USER->GetUserGroupArray();
-        }
-
         foreach ($offers as $offer) {
             if ($offer['PROPERTY_COLOR_VALUE'] == self::COLOR_WHITE_ID) {
-                $priceResult = CCatalogProduct::GetOptimalPrice(
-                    $offer['ID'],
-                    1,
-                    $userGroups,
-                    'N'
-                );
-                $priceWhite = $priceResult['PRICE']['PRICE'] ?? 0;
+                $priceWhite = self::getCatalogPrice((int)$offer['ID'])['gross'];
             } elseif ($offer['PROPERTY_COLOR_VALUE'] == $colorId) {
-                $priceResult = CCatalogProduct::GetOptimalPrice(
-                    $offer['ID'],
-                    1,
-                    $userGroups,
-                    'N'
-                );
-                $priceColor = $priceResult['PRICE']['PRICE'] ?? 0;
+                $priceColor = self::getCatalogPrice((int)$offer['ID'])['gross'];
             }
         }
 
@@ -218,7 +216,6 @@ class PriceCalculator
         float $basePrice
     ): array {
         $prices = [];
-        $pricesNovat = [];
         $sumSquare = 0;
         $height = 0;
         $width = 0;
@@ -262,19 +259,11 @@ class PriceCalculator
                 $basePrice
             );
 
-            $priceNovat = self::calculateSizePriceNovat(
-                $square,
-                $baseProductId,
-                $basePrice
-            );
-
             $prices[] = $price * $count;
-            $pricesNovat[] = $priceNovat * $count;
         }
 
         return [
             'totalPrice' => array_sum($prices),
-            'totalPriceNovat' => array_sum($pricesNovat),
             'totalSquare' => $sumSquare,
             'sizesStr' => implode(', ', $sizesLines),
             'height' => $height,
@@ -341,37 +330,6 @@ class PriceCalculator
         // Расчет по базовой цене
         $coefficient = self::getSquareCoefficient($square);
         return $square * $basePrice * $coefficient;
-    }
-
-    /**
-     * Расчет цены без НДС для размера
-     *
-     * @param float $square Площадь
-     * @param int $productId ID товара
-     * @param float $basePrice Базовая цена
-     * @return float Цена без НДС
-     */
-    private static function calculateSizePriceNovat(float $square, int $productId, float $basePrice): float
-    {
-        $priceResult = CPrice::GetList(
-            [],
-            [
-                "PRODUCT_ID" => $productId,
-                "CATALOG_GROUP_ID" => 1
-            ]
-        );
-
-        $nvp = 0;
-        if ($arPrices = $priceResult->Fetch()) {
-            $nvp = (float)$arPrices['PRICE'];
-        }
-
-        if ($nvp > 0) {
-            $coefficient = self::getSquareCoefficient($square);
-            return $square * $nvp * $coefficient;
-        }
-
-        return 0;
     }
 
     /**
