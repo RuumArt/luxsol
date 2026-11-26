@@ -34,6 +34,12 @@ $result=PriceCalculator::calculatePriceWithSizes($params);
 $check('420111 screenshot totals 1045.84 gross instead of 849.62 net',$result['price']===1045.84);
 $check('net amount belongs to the same gross calculation',$result['priceNovat']===850.28);
 $check('area and piece count are preserved',$result['totalSquare']===181.5 && $result['countSum']===12);
+$areaParams=array_replace($params,['sizes'=>[['height'=>'3,5','width'=>'1,5','count'=>3]]]);
+$areaResult=PriceCalculator::calculatePriceWithSizes($areaParams);
+$check('3.5 by 1.5 by 3 retains area 15.75',$areaResult['totalSquare']===15.75);
+$check('area precision does not change the unrounded price calculation',$areaResult['price']===109.93);
+$fineParams=array_replace($params,['sizes'=>[['height'=>'0,125','width'=>'0,125','count'=>3]]]);
+$check('millimetre dimensions retain six area decimals',PriceCalculator::calculatePriceWithSizes($fineParams)['totalSquare']===0.046875);
 foreach ([['4,99',2],['5',1.35],['9,99',1.35],['10',1.2],['19,99',1.2],['20',1]] as [$area,$coefficient]) {
     $test=array_replace($params,['sizes'=>[['height'=>$area,'width'=>1,'count'=>1]]]);
     $expected=round((float)str_replace(',','.',$area)*5.17*$coefficient,2);

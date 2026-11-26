@@ -61,9 +61,16 @@ $clearQuantity = static function (array &$row) use ($hasSizes): void {
  * Компонент экранирует значения свойств, поэтому не html, а символ
  */
 $addUnits = static function (array $props): array {
+	$sizesStr = '';
+	foreach ($props as $prop) {
+		if (($prop['CODE'] ?? '') === 'SIZES_STR') {
+			$sizesStr = (string)($prop['VALUE'] ?? '');
+			break;
+		}
+	}
 	foreach ($props as &$prop) {
 		if (($prop['CODE'] ?? '') === 'SQUARE' && ($prop['VALUE'] ?? '') !== '') {
-			$prop['VALUE'] = $prop['VALUE'] . ' m²';
+			$prop['VALUE'] = \Room\Tools\Format::area($prop['VALUE'], $sizesStr, null) . ' m²';
 		}
 	}
 

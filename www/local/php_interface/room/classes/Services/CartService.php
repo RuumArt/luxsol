@@ -276,6 +276,8 @@ class CartService
 
             if ($code === 'SIZES_STR') {
                 $property['VALUE'] = Format::sizes((string) $property['VALUE']);
+            } elseif ($code === 'SQUARE' && $property['VALUE'] !== '') {
+                $property['VALUE'] = Format::area($property['VALUE'], '', null);
             } elseif (in_array($code, $numericCodes, true) && $property['VALUE'] !== '') {
                 $property['VALUE'] = Format::number($property['VALUE']);
             }

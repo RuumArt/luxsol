@@ -60,7 +60,7 @@ foreach ($this->basketItems as $row)
 
 	// Единицу дописываем при выводе: в свойстве корзины лежит чистое число
 	$row['SQUARE'] = $s_index !== false
-		? Format::number($row['PROPS'][$s_index]['VALUE']) . '&nbsp;m<sup>2</sup>'
+		? Format::area($row['PROPS'][$s_index]['VALUE'], $sizesStr, null) . '&nbsp;m<sup>2</sup>'
 		: '';
 	$row['WIDTH'] = $w_index !== false ? $row['PROPS'][$w_index]['VALUE'] : '';
 	$row['HEIGHT'] = $h_index !== false ? $row['PROPS'][$h_index]['VALUE'] : '';

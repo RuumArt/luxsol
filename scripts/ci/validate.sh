@@ -15,6 +15,7 @@ php -d short_open_tag=1 -d display_errors=0 scripts/tests/order-confirmation.php
 php -d short_open_tag=1 -d display_errors=0 scripts/tests/new-order-mail.php
 php -d short_open_tag=1 -d display_errors=0 scripts/tests/catalog-selection.php
 php -d short_open_tag=1 -d display_errors=0 scripts/tests/price-calculator.php
+php -d short_open_tag=1 -d display_errors=0 scripts/tests/basket-area.php
 php -d short_open_tag=1 -d display_errors=0 scripts/tests/advance-invoice-reminders.php
 php -d short_open_tag=1 -d display_errors=0 scripts/tests/advance-invoice-dispatch.php
 php -d short_open_tag=1 -d display_errors=0 scripts/tests/production-updates.php
@@ -22,6 +23,7 @@ php -d short_open_tag=1 -d display_errors=0 scripts/tests/production-update-disp
 php -d short_open_tag=1 -d display_errors=0 scripts/tests/merchant-feeds.php
 node --check www/local/templates/luxol/components/bitrix/sale.order.ajax/order/order_ajax.js
 node scripts/tests/ecommerce-client.cjs
+node scripts/tests/basket-area-client.cjs
 python3 -m py_compile scripts/ci/server-release.py scripts/ci/ssh-entrypoint.py
 python3 scripts/tests/test_ci_release.py
 bash -n scripts/deploy.sh scripts/ci/deploy.sh scripts/ci/validate.sh

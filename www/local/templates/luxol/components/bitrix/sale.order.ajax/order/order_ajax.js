@@ -3491,7 +3491,7 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 				hiddenNames = ['Ссылка', 'Цена', 'Рассчитанная цена', 'Dimenze', 'Цена без ндс'],
 				number = function(value) { return String(Number(String(value).replace(',', '.'))).replace('.', ','); },
 				pattern = /([\d.,]+)\s*(?:m\s*)?[xх×]\s*([\d.,]+)\s*m\s*(?:[xх×]|[—–-])\s*([\d.,]+)\s*ks\.?/gi,
-				i, prop, code, name, value, match;
+				i, prop, code, name, value, match, area = 0;
 
 			for (i = 0; i < props.length; i++)
 			{
@@ -3500,6 +3500,7 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 					while ((match = pattern.exec(String(props[i].VALUE || ''))) !== null)
 					{
 						sizes.push({length: number(match[1]), width: number(match[2]), count: number(match[3])});
+						area += Number(match[1].replace(',', '.')) * Number(match[2].replace(',', '.')) * Number(match[3].replace(',', '.'));
 					}
 				}
 			}
@@ -3535,7 +3536,8 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 				else if (code === 'SQUARE')
 				{
 					name = 'Plocha';
-					value = value.replace(/\s*m(?:2|²)\s*$/i, '').replace(/(\d)\.(\d)/g, '$1,$2') + ' m²';
+					value = sizes.length ? number(Number(area.toFixed(6))) : value.replace(/\s*m(?:2|²)\s*$/i, '').replace(/(\d)\.(\d)/g, '$1,$2');
+					value += ' m²';
 				}
 				else if (code === 'SIZES_STR')
 				{

@@ -73,7 +73,9 @@ class PriceCalculator
         return [
             'price' => $grossTotal,
             'priceNovat' => round($grossTotal / (1 + $selectedPrice['vatRate']), 2),
-            'totalSquare' => round($result['totalSquare'], 1),
+            // Dimensions are displayed to millimetres; retain square-millimetre
+            // precision, only removing floating-point multiplication noise.
+            'totalSquare' => round($result['totalSquare'], 6),
             'sizesStr' => $result['sizesStr'],
             'height' => $result['height'],
             'width' => $result['width'],

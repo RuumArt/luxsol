@@ -122,7 +122,7 @@ class Format
     }
 
     /** Old basket area values were rounded to one decimal; recover precision from the cuts. */
-    public static function area($value, string $sizesStr = ''): string
+    public static function area($value, string $sizesStr = '', ?int $decimals = 2): string
     {
         $sizes = self::parseSizes($sizesStr);
         if ($sizes !== []) {
@@ -132,7 +132,11 @@ class Format
             }
         }
 
-        return self::number($value, 2);
+        if ($decimals === null) {
+            // Basket/checkout: retain precise area without padding zeroes.
+            return rtrim(rtrim(self::number($value, 6), '0'), self::DECIMAL_SEPARATOR);
+        }
+        return self::number($value, $decimals);
     }
 
     /**
